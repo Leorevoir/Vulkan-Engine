@@ -57,6 +57,7 @@ cmake-build-debug/
 
 vulkan_engine
 asm_offset
+*.spv
 
 *.jpg
 *.png
@@ -65,3 +66,4 @@ asm_offset
 *.cc
 *.glb
 
+.clang-format
