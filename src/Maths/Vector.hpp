@@ -14,37 +14,37 @@ struct Vector {
     public:
         VK_MATHS_BASE_TEMPLATE(N, T)
 
-        constexpr explicit inline Vector(const T &value)
+        VKM_API constexpr explicit Vector(const T &value)
         {
             std::fill(_data.begin(), _data.end(), value);
         }
 
         template<typename... Args>
             requires(sizeof...(Args) == N && (VK_MATHS_ASSERT_CONVERTIBLE(Args, T) && ...))
-        constexpr explicit inline Vector(Args &&...args) : _data{static_cast<T>(args)...}
+        VKM_API constexpr explicit Vector(Args &&...args) : _data{static_cast<T>(args)...}
         {
             /* __conversion__ */
         }
 
         template<typename U>
             requires(VK_MATHS_ASSERT_CONVERTIBLE(U, T))
-        constexpr explicit Vector(const Vector<N, U> &other)
+        VKM_API constexpr explicit Vector(const Vector<N, U> &other)
         {
             for (size_type i = 0; i < N; ++i) {
                 _data[i] = static_cast<T>(other[i]);
             }
         }
 
-        constexpr Vector operator+() const
+        VKM_API VKE_NODISCARD constexpr Vector operator+() const
         {
             return *this;
         }
 
-        constexpr T &operator[](size_type index)
+        VKM_API VKE_NODISCARD constexpr T &operator[](size_type index)
         {
             return _data[index];
         }
-        constexpr const T &operator[](size_type index) const
+        VKM_API VKE_NODISCARD constexpr const T &operator[](size_type index) const
         {
             return _data[index];
         }
@@ -53,8 +53,12 @@ struct Vector {
         T _data[N] = {0};
 };
 
+/**
+ * concrete vector types
+ */
+
 template<typename T>
-struct Vector2 : public Vector<2, T> {
+struct Vector2 final : public Vector<2, T> {
         using Vector<2, T>::Vector;
         using Vector<2, T>::_data;
 
@@ -65,7 +69,7 @@ struct Vector2 : public Vector<2, T> {
 };
 
 template<typename T>
-struct Vector3 : public Vector<3, T> {
+struct Vector3 final : public Vector<3, T> {
         using Vector<3, T>::Vector;
         using Vector<3, T>::_data;
 
@@ -78,7 +82,7 @@ struct Vector3 : public Vector<3, T> {
 };
 
 template<typename T>
-struct Vector4 : public Vector<4, T> {
+struct Vector4 final : public Vector<4, T> {
         using Vector<4, T>::Vector;
         using Vector<4, T>::_data;
 
