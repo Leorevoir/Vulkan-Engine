@@ -6,6 +6,7 @@ namespace vk::maths {
 
 #define VK_MATHS_NOT_NULL(x) (x > 0)
 #define VK_MATHS_ASSERT_NUMBERS(N, T) (std::is_arithmetic_v<T>)
+#define VK_MATHS_ASSERT_CONVERTIBLE(U, T) (std::convertible_to<U, T>)
 
 #define VK_MATHS_BASE_TEMPLATE(N, T)                                                                                                                                     \
     using value_type = T;                                                                                                                                                \
