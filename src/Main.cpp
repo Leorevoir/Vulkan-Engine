@@ -1,7 +1,6 @@
-#include <iostream>
+#include "Lib/Maths/Vector.hpp"
 
 int main(void)
 {
-    std::cout << "operational" << std::endl;
     return 0;
 }

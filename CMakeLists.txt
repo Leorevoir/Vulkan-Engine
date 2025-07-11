@@ -24,42 +24,12 @@ endif()
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 ########################################
-# NOTE: GLFW configuration
-########################################
-option(GLFW_BUILD_DOCS OFF)
-option(GLFW_BUILD_EXAMPLES OFF)
-option(GLFW_BUILD_TESTS OFF)
-option(GLFW_INSTALL OFF)
-
-if(DEFINED ENV{XDG_SESSION_TYPE})
-    if($ENV{XDG_SESSION_TYPE} STREQUAL "wayland")
-        message(STATUS "Detected Wayland session")
-        message(STATUS "Including Wayland support")
-        set(GLFW_BUILD_WAYLAND ON)
-        set(GLFW_BUILD_X11 OFF)
-    elseif($ENV{XDG_SESSION_TYPE} STREQUAL "x11")
-        message(STATUS "Detected X11 session")
-        set(GLFW_BUILD_WAYLAND OFF)
-        set(GLFW_BUILD_X11 ON)
-    endif()
-endif()
-
-if(NOT DEFINED GLFW_BUILD_WAYLAND AND NOT DEFINED GLFW_BUILD_X11)
-    message(WARNING "Unknown session type; defaulting to X11")
-    set(GLFW_BUILD_X11 ON)
-    set(GLFW_BUILD_WAYLAND OFF)
-endif()
-
-add_subdirectory(external/glfw EXCLUDE_FROM_ALL)
-
-########################################
 # NOTE: Vulkan-Engine
 ########################################
 file(GLOB_RECURSE SRC_FILES "src/*.cpp")
 add_executable(vulkan_engine ${SRC_FILES})
 
 target_link_libraries(vulkan_engine PRIVATE
-    glfw
     vulkan
     pthread
     ${CMAKE_DL_LIBS}
@@ -68,7 +38,6 @@ target_link_libraries(vulkan_engine PRIVATE
 target_include_directories(vulkan_engine PRIVATE 
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/include
-    ${CMAKE_SOURCE_DIR}/external
 )
 
 target_compile_options(vulkan_engine PRIVATE
@@ -92,3 +61,28 @@ target_compile_options(vulkan_engine PRIVATE
     -Wformat=2
     -Wwrite-strings
 )
+
+########################################
+# NOTE: unit-tests
+########################################
+file(GLOB_RECURSE TEST_FILES "tests/*.cpp")
+file(GLOB_RECURSE SRC_FILES_NO_MAIN "src/*.cpp")
+list(FILTER SRC_FILES_NO_MAIN EXCLUDE REGEX ".*Main\\.cpp$")
+
+add_executable(unit_tests ${TEST_FILES} ${SRC_FILES_NO_MAIN})
+
+target_link_libraries(unit_tests PRIVATE
+    vulkan
+    pthread
+    ${CMAKE_DL_LIBS}
+    criterion
+)
+
+target_include_directories(unit_tests PRIVATE 
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/tests
+)
+
+enable_testing()
+add_test(NAME unit_tests COMMAND unit_tests)

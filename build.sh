@@ -49,7 +49,7 @@ git submodule update -j16 --init --recursive
 _success "Git submodules updated successfully"
 
 _info "Rebuilding shader cache..."
-for item in $(find assets/shaders \( -name "*.vert" -o -name "*.frag" \)); do
+for item in $(find assets/shaders \( -name "*.vert" -o -name "*.frag" -o -name "*.comp" \)); do
     _info "Compiling shader: $item"
     glslangValidator -V "$item" -o "${item%.*}.spv" || _error "Shader compilation failed" "$item"
     _success "Shader compiled successfully: ${item%.*}.spv"
