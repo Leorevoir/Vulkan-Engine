@@ -16,6 +16,8 @@
 #define VK_MATHS_MAT_TEMPLATE(N, M, T)                                                                                                                                   \
     using value_type = T;                                                                                                                                                \
     using size_type = u32;                                                                                                                                               \
+    using Column = Vector<N, T>;                                                                                                                                         \
+    using Row = Vector<M, T>;                                                                                                                                            \
     static constexpr size_type rows = N;                                                                                                                                 \
     static constexpr size_type cols = M;                                                                                                                                 \
     static constexpr size_type size = N * M;

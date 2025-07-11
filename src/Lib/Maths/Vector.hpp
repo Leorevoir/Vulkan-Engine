@@ -17,7 +17,7 @@ struct Vector {
 
         VKM_API VK_NODISCARD VK_INLINE constexpr Vector() = default;
 
-        VKM_API VK_INLINE constexpr explicit Vector(const T &value)
+        VKM_API VK_NODISCARD VK_INLINE constexpr explicit Vector(const T &value)
         {
             std::fill(_data.begin(), _data.end(), value);
         }
