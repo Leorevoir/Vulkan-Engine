@@ -61,3 +61,28 @@ target_compile_options(vulkan_engine PRIVATE
     -Wformat=2
     -Wwrite-strings
 )
+
+########################################
+# NOTE: unit-tests
+########################################
+file(GLOB_RECURSE TEST_FILES "tests/*.cpp")
+file(GLOB_RECURSE SRC_FILES_NO_MAIN "src/*.cpp")
+list(FILTER SRC_FILES_NO_MAIN EXCLUDE REGEX ".*Main\\.cpp$")
+
+add_executable(unit_tests ${TEST_FILES} ${SRC_FILES_NO_MAIN})
+
+target_link_libraries(unit_tests PRIVATE
+    vulkan
+    pthread
+    ${CMAKE_DL_LIBS}
+    criterion
+)
+
+target_include_directories(unit_tests PRIVATE 
+    ${CMAKE_SOURCE_DIR}/src
+    ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/tests
+)
+
+enable_testing()
+add_test(NAME unit_tests COMMAND unit_tests)
