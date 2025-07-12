@@ -23,6 +23,7 @@ template<usize N, typename T>
 struct VectorData {
 
         /* __data__ */
+        T _data[N] = {0};
 };
 
 template<typename T>
@@ -38,6 +39,7 @@ struct VectorData<2, T> {
                 struct {
                         T s, t;
                 };
+                T _data[2];
         };
 };
 
@@ -54,6 +56,7 @@ struct VectorData<3, T> {
                 struct {
                         T s, t, p;
                 };
+                T _data[3];
         };
 };
 
@@ -70,6 +73,7 @@ struct VectorData<4, T> {
                 struct {
                         T s, t, p, q;
                 };
+                T _data[2];
         };
 };
 
@@ -82,7 +86,7 @@ struct VectorData<4, T> {
 template<usize N, typename T>
     requires(VK_MATHS_NOT_NULL(N) && VK_MATHS_ASSERT_NUMBERS(T))
 
-struct Vector {
+struct Vector : public detail::VectorData<N, T> {
 
         VK_MATHS_ASSERT_VECTOR_SIZE(N)
 
@@ -93,7 +97,7 @@ struct Vector {
 
         VKM_API VK_NODISCARD VK_INLINE constexpr explicit Vector(const T &value)
         {
-            std::fill(_data.begin(), _data.end(), value);
+            std::fill(this->_data.begin(), this->_data.end(), value);
         }
 
         VKM_API VK_NODISCARD VK_INLINE constexpr explicit Vector(const std::initializer_list<T> &il)
@@ -102,19 +106,23 @@ struct Vector {
 
             for (const auto &v : il) {
                 if (i < N) {
-                    _data[++i] = v;
+                    this->_data[++i] = v;
                 }
                 for (; i < N; ++i) {
-                    _data[i] = T(0);
+                    this->_data[i] = T(0);
                 }
             }
         }
 
         template<typename... Args>
             requires(sizeof...(Args) == N && (VK_MATHS_ASSERT_CONVERTIBLE(Args, T) && ...))
-        VKM_API VK_NODISCARD VK_INLINE constexpr explicit Vector(Args &&...args) : _data{static_cast<T>(args)...}
+        VKM_API VK_NODISCARD VK_INLINE constexpr explicit Vector(Args &&...args)
         {
-            /* __conversion__ */
+            const T temp[N] = {static_cast<T>(args)...};
+
+            for (usize i = 0; i < N; ++i) {
+                this->_data[i] = temp[i];
+            }
         }
 
         template<typename U>
@@ -122,7 +130,7 @@ struct Vector {
         VKM_API VK_NODISCARD VK_INLINE constexpr explicit Vector(const Vector<N, U> &other)
         {
             for (size_type i = 0; i < N; ++i) {
-                _data[i] = static_cast<T>(other[i]);
+                this->_data[i] = static_cast<T>(other[i]);
             }
         }
 
@@ -136,7 +144,7 @@ struct Vector {
             Vector v;
 
             for (size_type i = 0; i != N; ++i) {
-                v[i] = -_data[i];
+                v[i] = -this->_data[i];
             }
             return v;
         }
@@ -144,7 +152,7 @@ struct Vector {
         VKM_API VK_INLINE constexpr Vector &operator*=(const T &t)
         {
             for (size_type i = 0; i != N; ++i) {
-                _data[i] *= t;
+                this->_data[i] *= t;
             }
             return *this;
         }
@@ -152,7 +160,7 @@ struct Vector {
         VKM_API VK_INLINE constexpr Vector &operator/=(const T &t)
         {
             for (size_type i = 0; i != N; ++i) {
-                _data[i] /= t;
+                this->_data[i] /= t;
             }
             return *this;
         }
@@ -160,7 +168,7 @@ struct Vector {
         VKM_API VK_INLINE constexpr Vector &operator+=(const T &t)
         {
             for (size_type i = 0; i != N; ++i) {
-                _data[i] += t;
+                this->_data[i] += t;
             }
             return *this;
         }
@@ -168,7 +176,7 @@ struct Vector {
         VKM_API VK_INLINE constexpr Vector &operator-=(const T &t)
         {
             for (size_type i = 0; i != N; ++i) {
-                _data[i] -= t;
+                this->_data[i] -= t;
             }
             return *this;
         }
@@ -176,7 +184,7 @@ struct Vector {
         VKM_API VK_INLINE constexpr Vector &operator*=(const Vector &v)
         {
             for (size_type i = 0; i != N; ++i) {
-                _data[i] *= v[i];
+                this->_data[i] *= v[i];
             }
             return *this;
         }
@@ -184,7 +192,7 @@ struct Vector {
         VKM_API VK_INLINE constexpr Vector &operator/=(const Vector &v)
         {
             for (size_type i = 0; i != N; ++i) {
-                _data[i] /= v[i];
+                this->_data[i] /= v[i];
             }
             return *this;
         }
@@ -192,7 +200,7 @@ struct Vector {
         VKM_API VK_INLINE constexpr Vector &operator+=(const Vector &v)
         {
             for (size_type i = 0; i != N; ++i) {
-                _data[i] += v[i];
+                this->_data[i] += v[i];
             }
             return *this;
         }
@@ -200,7 +208,7 @@ struct Vector {
         VKM_API VK_INLINE constexpr Vector &operator-=(const Vector &v)
         {
             for (size_type i = 0; i != N; ++i) {
-                _data[i] -= v[i];
+                this->_data[i] -= v[i];
             }
             return *this;
         }
@@ -208,18 +216,18 @@ struct Vector {
         VKM_API VK_INLINE constexpr Vector &operator=(const T &v)
         {
             for (size_type i = 0; i != N; ++i) {
-                _data[i] = v;
+                this->_data[i] = v;
             }
             return *this;
         }
 
         VKM_API VK_NODISCARD VK_INLINE constexpr T &operator[](size_type index)
         {
-            return _data[index];
+            return this->_data[index];
         }
         VKM_API VK_NODISCARD VK_INLINE constexpr const T &operator[](size_type index) const
         {
-            return _data[index];
+            return this->_data[index];
         }
 
         VKM_API VK_NODISCARD VK_INLINE constexpr T dot(const Vector &o) const
@@ -227,7 +235,7 @@ struct Vector {
             T sum = 0;
 
             for (size_type i = 0; i != N; ++i) {
-                sum += _data[i] * o[i];
+                sum += this->_data[i] * o[i];
             }
             return sum;
         }
@@ -237,14 +245,14 @@ struct Vector {
             Vector v;
 
             for (size_type i = 0; i != N; ++i) {
-                v[i] = _data[(i + 1) % N] * o[(i + 2) % N] - _data[(i + 2) % N] * o[(i + 1) % N];
+                v[i] = this->_data[(i + 1) % N] * o[(i + 2) % N] - this->_data[(i + 2) % N] * o[(i + 1) % N];
             }
             return v;
         }
 
         VKM_API VK_INLINE constexpr bool is_zero() const
         {
-            for (const auto &value : _data) {
+            for (const auto &value : this->_data) {
                 if (value != 0) {
                     return false;
                 }
@@ -270,11 +278,6 @@ struct Vector {
 
             v.normalize();
             return v;
-        }
-
-        VKM_API VK_NODISCARD VK_INLINE constexpr T *data() const
-        {
-            return _data;
         }
 };
 
@@ -325,8 +328,8 @@ VKM_API VK_NODISCARD VK_INLINE constexpr auto operator*(Vector<N, T> a, const Ve
 template<usize N, typename T, typename R>
 VKM_API VK_NODISCARD VK_INLINE constexpr auto operator-(const Vector<N, T> &v, const R &r)
 {
-
     Vector<N, T> vec(v);
+
     vec -= r;
     return vec;
 }
@@ -348,6 +351,7 @@ template<usize N, typename T, typename R>
 VKM_API VK_NODISCARD VK_INLINE constexpr auto operator/(const Vector<N, T> &v, const R &r)
 {
     Vector<N, T> vec(v);
+
     vec /= r;
     return vec;
 }
@@ -356,6 +360,7 @@ template<usize N, typename T, typename L>
 VKM_API VK_NODISCARD VK_INLINE constexpr auto operator/(const L &l, const Vector<N, T> &v)
 {
     Vector<N, T> vec(v);
+
     return vec / v;
 }
 

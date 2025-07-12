@@ -16,11 +16,7 @@
 
 #define VK_MATHS_VEC_TEMPLATE(N, T)                                                                                                                                      \
     VK_MATHS_BASE_TEMPLATE(T)                                                                                                                                            \
-    static constexpr size_type size = N;                                                                                                                                 \
-    union {                                                                                                                                                              \
-            T _data[N];                                                                                                                                                  \
-            detail::VectorData<N, T> _named;                                                                                                                             \
-    };
+    static constexpr size_type size = N;
 
 #define VK_MATHS_MAT_TEMPLATE(N, M, T)                                                                                                                                   \
     VK_MATHS_BASE_TEMPLATE(T)                                                                                                                                            \
