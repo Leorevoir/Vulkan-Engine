@@ -2,8 +2,6 @@
 
 #if defined(_WIN32) || defined(_WIN64)
     #error "Windows support is not implemented yet."
-#elif defined(__APPLE__)
-    #error "macOS support is not implemented yet."
 #endif
 
 #define VK_FORCE_CLEAR_COLOR 0x00aade87
@@ -14,14 +12,22 @@ namespace vk {
 
 namespace detail {
 
-struct VK_BackendWindow {
+class VK_BackendWindow
+{
     public:
+        VK_INLINE constexpr VK_BackendWindow(const maths::Vector2u &size, const std::string &title) : _size(size), _title(title)
+        {
+            /* __ctor__ */
+        }
+
         virtual ~VK_BackendWindow() = default;
 
+        maths::Vector2u _size;
+        std::string _title;
         bool _closed = true;
 
-        virtual void display() const = 0;
         virtual void event() = 0;
+        virtual void display() = 0;
 };
 
 }// namespace detail

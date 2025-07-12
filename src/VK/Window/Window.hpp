@@ -2,10 +2,6 @@
 
 #include <VK/Window/Platform/Base.hpp>
 
-#if defined(__linux__)
-    #include <VK/Window/Platform/X11.hpp>
-#endif
-
 #include <memory>
 
 namespace vk {
@@ -18,8 +14,10 @@ class Window final
         ~Window();
 
         VK_NODISCARD bool shouldClose() const;
+        VK_NODISCARD const maths::Vector2u &getSize() const;
+
+        void pollEvents();
         void display();
-        void event();
 
     private:
         std::unique_ptr<detail::VK_BackendWindow> _vk_backend;

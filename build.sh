@@ -48,12 +48,15 @@ _info "Updating git submodules..."
 git submodule update -j16 --init --recursive
 _success "Git submodules updated successfully"
 
-_info "Rebuilding shader cache..."
-for item in $(find assets/shaders \( -name "*.vert" -o -name "*.frag" -o -name "*.comp" \)); do
-    _info "Compiling shader: $item"
-    glslangValidator -V "$item" -o "${item%.*}.spv" || _error "Shader compilation failed" "$item"
-    _success "Shader compiled successfully: ${item%.*}.spv"
-done
+_info "Compiling shaders to SPIR-V..."
+find ./assets/shaders/ -type f \( -name "*.frag" -o -name "*.vert" -o -name "*.comp" \) \
+| parallel --eta '
+    ext="{= s:.*\.(frag|vert)$:\1: =}";
+    base=$(basename {} .$ext);
+    out=${base}_${ext}.spv;
+    echo "Compiling {} -> $out";
+    glslangValidator -V {} -o $out
+'
 _success "Built shader cache"
 
 BUILD_DIR="build"

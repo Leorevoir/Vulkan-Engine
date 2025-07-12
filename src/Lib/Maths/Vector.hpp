@@ -4,8 +4,8 @@
 #include <VK/Types.hpp>
 
 #include <cmath>
-#include <complex>
 #include <initializer_list>
+#include <ostream>
 
 namespace vk::maths {
 
@@ -39,6 +39,9 @@ struct VectorData<2, T> {
                 };
                 struct {
                         T s, t;
+                };
+                struct {
+                        T width, height;
                 };
                 T _data[2];
         };
@@ -107,11 +110,12 @@ struct Vector : public detail::VectorData<N, T> {
 
             for (const auto &v : il) {
                 if (i < N) {
-                    this->_data[++i] = v;
+                    this->_data[i++] = v;
                 }
-                for (; i < N; ++i) {
-                    this->_data[i] = T(0);
-                }
+            }
+
+            for (; i < N; ++i) {
+                this->_data[i] = T(0);
             }
         }
 

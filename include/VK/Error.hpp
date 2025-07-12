@@ -25,8 +25,8 @@ class Error : public std::exception
         }
 
     private:
-        const std::string &_where;
-        const std::string &_what;
+        std::string _where;
+        std::string _what;
 };
 
 class InvalidArgument final : public Error
