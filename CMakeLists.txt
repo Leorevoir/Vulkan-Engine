@@ -40,6 +40,12 @@ target_include_directories(vulkan_engine PRIVATE
     ${CMAKE_SOURCE_DIR}/include
 )
 
+if(UNIX AND NOT APPLE)
+    find_package(X11 REQUIRED)
+    target_link_libraries(vulkan_engine PRIVATE X11)
+    target_include_directories(vulkan_engine PRIVATE ${X11_INCLUDE_DIR})
+endif()
+
 target_compile_options(vulkan_engine PRIVATE
     -Wall
     -Wextra
@@ -83,6 +89,12 @@ target_include_directories(unit_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/include
     ${CMAKE_SOURCE_DIR}/tests
 )
+
+if(UNIX AND NOT APPLE)
+    find_package(X11 REQUIRED)
+    target_link_libraries(unit_tests PRIVATE X11)
+    target_include_directories(unit_tests PRIVATE ${X11_INCLUDE_DIR})
+endif()
 
 enable_testing()
 add_test(NAME unit_tests COMMAND unit_tests)

@@ -38,4 +38,22 @@ class InvalidArgument final : public Error
         }
 };
 
+class RuntimeError final : public Error
+{
+    public:
+        VK_NODISCARD VK_INLINE explicit RuntimeError(const std::string &where, const std::string &what) : Error(where, what)
+        {
+            /* __ctor__ */
+        }
+};
+
+class NotImplemented final : public Error
+{
+    public:
+        VK_NODISCARD VK_INLINE explicit NotImplemented(const std::string &where, const std::string &what) : Error(where, what)
+        {
+            /* __ctor__ */
+        }
+};
+
 }// namespace vk::exception

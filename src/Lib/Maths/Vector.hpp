@@ -4,6 +4,7 @@
 #include <VK/Types.hpp>
 
 #include <cmath>
+#include <complex>
 #include <initializer_list>
 
 namespace vk::maths {
@@ -95,12 +96,12 @@ struct Vector : public detail::VectorData<N, T> {
 
         VKM_API VK_NODISCARD VK_INLINE constexpr Vector() = default;
 
-        VKM_API VK_NODISCARD VK_INLINE constexpr explicit Vector(const T &value)
+        VKM_API VK_NODISCARD VK_INLINE constexpr Vector(const T &value)
         {
             std::fill(this->_data.begin(), this->_data.end(), value);
         }
 
-        VKM_API VK_NODISCARD VK_INLINE constexpr explicit Vector(const std::initializer_list<T> &il)
+        VKM_API VK_NODISCARD VK_INLINE constexpr Vector(const std::initializer_list<T> &il)
         {
             size_type i = 0;
 
@@ -116,7 +117,7 @@ struct Vector : public detail::VectorData<N, T> {
 
         template<typename... Args>
             requires(sizeof...(Args) == N && (VK_MATHS_ASSERT_CONVERTIBLE(Args, T) && ...))
-        VKM_API VK_NODISCARD VK_INLINE constexpr explicit Vector(Args &&...args)
+        VKM_API VK_NODISCARD VK_INLINE constexpr Vector(Args &&...args)
         {
             const T temp[N] = {static_cast<T>(args)...};
 
@@ -127,7 +128,7 @@ struct Vector : public detail::VectorData<N, T> {
 
         template<typename U>
             requires(VK_MATHS_ASSERT_CONVERTIBLE(U, T))
-        VKM_API VK_NODISCARD VK_INLINE constexpr explicit Vector(const Vector<N, U> &other)
+        VKM_API VK_NODISCARD VK_INLINE constexpr Vector(const Vector<N, U> &other)
         {
             for (size_type i = 0; i < N; ++i) {
                 this->_data[i] = static_cast<T>(other[i]);
@@ -369,6 +370,20 @@ VKM_API VK_NODISCARD VK_INLINE constexpr auto operator/(Vector<N, T> a, const Ve
 {
     a /= b;
     return a;
+}
+
+template<usize N, typename T>
+VKM_API VK_NODISCARD VK_INLINE constexpr std::ostream &operator<<(std::ostream &os, const Vector<N, T> &v)
+{
+    os << "Vector<" << N << ", " << typeid(T).name() << ">(";
+    for (typename Vector<N, T>::size_type i = 0; i < N; ++i) {
+        os << v[i];
+        if (i < N - 1) {
+            os << ", ";
+        }
+    }
+    os << ")";
+    return os;
 }
 
 template<typename T>

@@ -1,19 +1,23 @@
 #pragma once
 
-#include <Lib/Maths/Vector.hpp>
+#include <VK/Window/Platform.hpp>
 
-#include <string>
+#include <memory>
 
 namespace vk {
 
-class Window
+class Window final
 {
 
     public:
         explicit Window(const maths::Vector2u &size, const std::string &title = "VKE Window");
         ~Window();
 
+        void display();
+        void event();
+
     private:
+        std::unique_ptr<detail::VK_BackendWindow> _vk_backend;
 };
 
 }// namespace vk
