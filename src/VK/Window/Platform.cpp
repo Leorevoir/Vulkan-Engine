@@ -34,7 +34,6 @@ void vk::detail::VK_X11Window::display() const
 
 void vk::detail::VK_X11Window::_create()
 {
-#if defined(__linux__)
     _display = XOpenDisplay(0);
 
     if (!_display) {
@@ -45,8 +44,6 @@ void vk::detail::VK_X11Window::_create()
     _xWindow = XCreateSimpleWindow(_display, _xRootWindow, 0, 0, _size.x, _size.y, 0, 0, VK_FORCE_CLEAR_COLOR);
 
     XMapWindow(_display, _xWindow);
-
-#endif
 }
 
 void vk::detail::VK_X11Window::_destroy()

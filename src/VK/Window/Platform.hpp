@@ -21,6 +21,7 @@ struct VK_BackendWindow {
 
 #if defined(__linux__)
     #include <X11/Xlib.h>
+
 struct VK_X11Window final : public VK_BackendWindow {
 
     public:
@@ -37,12 +38,11 @@ struct VK_X11Window final : public VK_BackendWindow {
         void _create();
         void _destroy();
 
-    #if defined(__linux__)
         Display *_display;
         Window _xRootWindow;
         Window _xWindow;
-    #endif
 };
+
 #elif defined(_WIN32) || defined(_WIN64)
     #error "Windows support is not implemented yet."
 #elif defined(__APPLE__)
