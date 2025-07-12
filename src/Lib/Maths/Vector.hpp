@@ -3,15 +3,89 @@
 #include <Lib/Maths/Base.hpp>
 #include <VK/Types.hpp>
 
-#include <algorithm>
 #include <cmath>
+#include <initializer_list>
 
 namespace vk::maths {
+
+namespace detail {
+
+/**
+ * NOTE: disable pedantic warnings for GCC/Clang to allow anonymous structs
+ */
+
+#if defined(__GNUC__) || defined(__clang__)
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wpedantic"
+#endif
+
+template<usize N, typename T>
+struct VectorData {
+
+        /* __data__ */
+};
+
+template<typename T>
+struct VectorData<2, T> {
+
+        union {
+                struct {
+                        T x, y;
+                };
+                struct {
+                        T r, g;
+                };
+                struct {
+                        T s, t;
+                };
+        };
+};
+
+template<typename T>
+struct VectorData<3, T> {
+
+        union {
+                struct {
+                        T x, y, z;
+                };
+                struct {
+                        T r, g, b;
+                };
+                struct {
+                        T s, t, p;
+                };
+        };
+};
+
+template<typename T>
+struct VectorData<4, T> {
+
+        union {
+                struct {
+                        T x, y, z, w;
+                };
+                struct {
+                        T r, g, b, a;
+                };
+                struct {
+                        T s, t, p, q;
+                };
+        };
+};
+
+#if defined(__GNUC__) || defined(__clang__)
+    #pragma GCC diagnostic pop
+#endif
+
+}// namespace detail
 
 template<usize N, typename T>
     requires(VK_MATHS_NOT_NULL(N) && VK_MATHS_ASSERT_NUMBERS(T))
 
 struct Vector {
+
+        VK_MATHS_ASSERT_VECTOR_SIZE(N)
+
     public:
         VK_MATHS_VEC_TEMPLATE(N, T)
 
@@ -20,6 +94,20 @@ struct Vector {
         VKM_API VK_NODISCARD VK_INLINE constexpr explicit Vector(const T &value)
         {
             std::fill(_data.begin(), _data.end(), value);
+        }
+
+        VKM_API VK_NODISCARD VK_INLINE constexpr explicit Vector(const std::initializer_list<T> &il)
+        {
+            size_type i = 0;
+
+            for (const auto &v : il) {
+                if (i < N) {
+                    _data[++i] = v;
+                }
+                for (; i < N; ++i) {
+                    _data[i] = T(0);
+                }
+            }
         }
 
         template<typename... Args>
@@ -45,11 +133,12 @@ struct Vector {
 
         VKM_API VK_INLINE constexpr Vector operator-() const
         {
-            Vector t;
+            Vector v;
+
             for (size_type i = 0; i != N; ++i) {
-                t[i] = -_data[i];
+                v[i] = -_data[i];
             }
-            return t;
+            return v;
         }
 
         VKM_API VK_INLINE constexpr Vector &operator*=(const T &t)
@@ -187,9 +276,6 @@ struct Vector {
         {
             return _data;
         }
-
-    private:
-        T _data[N] = {0};
 };
 
 template<usize N, typename T>
@@ -279,5 +365,19 @@ VKM_API VK_NODISCARD VK_INLINE constexpr auto operator/(Vector<N, T> a, const Ve
     a /= b;
     return a;
 }
+
+template<typename T>
+using Vector2 = Vector<2, T>;
+template<typename T>
+using Vector3 = Vector<3, T>;
+template<typename T>
+using Vector4 = Vector<4, T>;
+
+using Vector2f = Vector2<f32>;
+using Vector3f = Vector3<f32>;
+using Vector4f = Vector4<f32>;
+
+using Vector2u = Vector2<u32>;
+using Vector2i = Vector2<i32>;
 
 }// namespace vk::maths
