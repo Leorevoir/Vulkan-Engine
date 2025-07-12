@@ -4,6 +4,24 @@
 #include <cstdint>
 #include <type_traits>
 
+#if defined(VK_FORCE_NO_INLINE)
+    #define VK_INLINE
+#else
+    #define VK_INLINE inline
+#endif
+
+#if defined(__has_cpp_attribute)
+
+    #define VK_NODISCARD [[nodiscard]]
+    #define VK_NORETURN [[noreturn]]
+    #define VK_LIKELY [[likely]]
+
+    #define VK_UNUSED __attribute__((unused))
+
+#endif
+
+namespace vk {
+
 struct NonCopyable {
 
         inline constexpr NonCopyable() = default;
@@ -23,6 +41,8 @@ struct NonMovable {
         NonMovable &operator=(const NonMovable &&) = delete;
 };
 
+}// namespace vk
+
 using u8 = uint8_t;
 using u16 = uint16_t;
 using u32 = uint32_t;
@@ -38,19 +58,3 @@ using f64 = double;
 
 using isize = std::make_signed_t<size_t>;
 using usize = std::make_unsigned_t<size_t>;
-
-#if defined(VK_FORCE_NO_INLINE)
-    #define VK_INLINE
-#else
-    #define VK_INLINE inline
-#endif
-
-#if defined(__has_cpp_attribute)
-
-    #define VK_NODISCARD [[nodiscard]]
-    #define VK_NORETURN [[noreturn]]
-    #define VK_LIKELY [[likely]]
-
-    #define VK_UNUSED __attribute__((unused))
-
-#endif
