@@ -25,6 +25,11 @@ vk::Window::~Window()
     /* __dtor__ */
 }
 
+bool vk::Window::shouldClose() const
+{
+    return _vk_backend->_closed == true;
+}
+
 void vk::Window::display()
 {
     _vk_backend->display();
@@ -32,5 +37,5 @@ void vk::Window::display()
 
 void vk::Window::event()
 {
-    const i32 VK_UNUSED event = _vk_backend->event();
+    _vk_backend->event();
 }
