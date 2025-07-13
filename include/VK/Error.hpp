@@ -3,57 +3,73 @@
 #include <VK/Types.hpp>
 
 #include <exception>
+#include <sstream>
 #include <string>
+
+#define __VK_ERROR_INHERIT(N)                                                                                                                                            \
+    template<typename... Args>                                                                                                                                           \
+    constexpr explicit N(std::string where, Args &&...args) : Error(std::move(where), std::forward<Args>(args)...)                                                       \
+    {                                                                                                                                                                    \
+        /* __ctor__ */                                                                                                                                                   \
+    }
 
 namespace vk::exception {
 
 class Error : public std::exception
 {
     public:
-        VK_NODISCARD VK_INLINE explicit Error(const std::string &where, const std::string &what) : _where(where), _what(what)
+        template<typename... Args>
+        constexpr explicit Error(std::string where, Args &&...args) : _where(std::move(where)), _what(_concat(std::forward<Args>(args)...))
         {
             /* __ctor__ */
         }
 
-        VK_NODISCARD VK_INLINE const char *what() const noexcept override
+        [[nodiscard]] const char *what() const noexcept override
         {
             return _what.c_str();
         }
-        VK_NODISCARD VK_INLINE const char *where() const noexcept
+
+        [[nodiscard]] const char *where() const noexcept
         {
             return _where.c_str();
         }
 
     private:
-        std::string _where;
-        std::string _what;
+        const std::string _where;
+        const std::string _what;
+
+        template<typename... Args>
+        static std::string _concat(Args &&...args)
+        {
+            std::ostringstream oss;
+
+            (oss << ... << args);
+            return oss.str();
+        }
 };
 
 class InvalidArgument final : public Error
 {
     public:
-        VK_NODISCARD VK_INLINE explicit InvalidArgument(const std::string &where, const std::string &what) : Error(where, what)
-        {
-            /* __ctor__ */
-        }
+        __VK_ERROR_INHERIT(InvalidArgument)
 };
 
 class RuntimeError final : public Error
 {
     public:
-        VK_NODISCARD VK_INLINE explicit RuntimeError(const std::string &where, const std::string &what) : Error(where, what)
-        {
-            /* __ctor__ */
-        }
+        __VK_ERROR_INHERIT(RuntimeError)
 };
 
 class NotImplemented final : public Error
 {
     public:
-        VK_NODISCARD VK_INLINE explicit NotImplemented(const std::string &where, const std::string &what) : Error(where, what)
-        {
-            /* __ctor__ */
-        }
+        __VK_ERROR_INHERIT(NotImplemented)
+};
+
+class BadAlloc final : public Error
+{
+    public:
+        __VK_ERROR_INHERIT(BadAlloc)
 };
 
 }// namespace vk::exception

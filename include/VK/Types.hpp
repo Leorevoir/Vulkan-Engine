@@ -4,22 +4,6 @@
 #include <cstdint>
 #include <type_traits>
 
-#if defined(VK_FORCE_NO_INLINE)
-    #define VK_INLINE
-#else
-    #define VK_INLINE inline
-#endif
-
-#if defined(__has_cpp_attribute)
-
-    #define VK_NODISCARD [[nodiscard]]
-    #define VK_NORETURN [[noreturn]]
-    #define VK_LIKELY [[likely]]
-
-    #define VK_UNUSED __attribute__((unused))
-
-#endif
-
 namespace vk {
 
 struct NonCopyable {
