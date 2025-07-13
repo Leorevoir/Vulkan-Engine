@@ -1,8 +1,12 @@
+#ifndef VK_USE_PLATFORM_XCB_KHR
+#define VK_USE_PLATFORM_XCB_KHR
+#endif
+
 #if defined(VK_USE_PLATFORM_XCB_KHR)
 
-    #include <VK/Error.hpp>
-    #include <VK/Utils.hpp>
-    #include <VK/Window/Platform/Xcb.hpp>
+#include <VK/Error.hpp>
+#include <VK/Utils.hpp>
+#include <VK/Window/Platform/Xcb.hpp>
 
 /**
 * public
@@ -44,7 +48,7 @@ void vk::detail::VK_XCBWindow::display()
  * helpers
  */
 
-    #include <cstring>
+#include <cstring>
 
 static inline xcb_intern_atom_reply_t *_inter_atom_helper(xcb_connection_t *conn, bool only_if_exists, const char *str)
 {
@@ -69,9 +73,6 @@ void vk::detail::VK_XCBWindow::_create()
 
 void vk::detail::VK_XCBWindow::_destroy()
 {
-    if (_closed) {
-        return;
-    }
     if (_atom_wm_delete_window) {
         utils::clean(_atom_wm_delete_window);
         _atom_wm_delete_window = nullptr;
@@ -122,20 +123,59 @@ void vk::detail::VK_XCBWindow::_setup()
     xcb_intern_atom_reply_t *reply_protocols = _inter_atom_helper(_connection, true, "WM_PROTOCOLS");
     xcb_intern_atom_reply_t *reply_delete = _inter_atom_helper(_connection, false, "WM_DELETE_WINDOW");
 
-    if (reply_protocols && reply_delete) {
-        xcb_change_property(_connection, XCB_PROP_MODE_REPLACE, _window, reply_protocols->atom, 4, 32, 1, &reply_delete->atom);
-        _atom_wm_delete_window = reply_delete;
-    } else {
-        utils::clean(reply_delete);
-    }
-
+    xcb_change_property(_connection, XCB_PROP_MODE_REPLACE, _window, reply_protocols->atom, 4, 32, 1, &reply_delete->atom);
+    _atom_wm_delete_window = reply_delete;
     utils::clean(reply_protocols);
     xcb_map_window(_connection, _window);
 }
 
 void vk::detail::VK_XCBWindow::_handle_events(xcb_generic_event_t *event)
 {
-    switch (event->response_type & 0x7f) {
+    switch (event->response_type & ~0x80) {
+
+        case XCB_BUTTON_PRESS: {
+            xcb_button_press_event_t *b = reinterpret_cast<xcb_button_press_event_t *>(event);
+
+            switch (b->detail) {
+                case XCB_BUTTON_INDEX_4:
+                    /* wheel up */
+                    break;
+                case XCB_BUTTON_INDEX_5:
+                    /* wheel down */
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        case XCB_BUTTON_RELEASE: {
+            /* xcb_button_release_event_t *b = reinterpret_cast<xcb_button_release_event_t *>(event); */
+            break;
+        }
+
+        case XCB_MOTION_NOTIFY: {
+            /* xcb_motion_notify_event_t *m = reinterpret_cast<xcb_motion_notify_event_t *>(event); */
+            /* mouse position inside window */
+            break;
+        }
+
+        case XCB_LEAVE_NOTIFY: {
+            /* xcb_leave_notify_event_t *l = reinterpret_cast<xcb_leave_notify_event_t *>(event); */
+            /* mouse leave window */
+            break;
+        }
+
+        case XCB_KEY_PRESS: {
+            /* xcb_key_press_event_t *k = reinterpret_cast<xcb_key_press_event_t *>(event); */
+            /* key press */
+            break;
+        }
+
+        case XCB_KEY_RELEASE: {
+            /* xcb_key_release_event_t *k = reinterpret_cast<xcb_key_release_event_t *>(event); */
+            /* key release */
+            break;
+        }
 
         case XCB_CLIENT_MESSAGE:
             if ((*(xcb_client_message_event_t *) event).data.data32[0] == (*_atom_wm_delete_window).atom) {
