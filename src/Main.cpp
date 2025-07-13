@@ -8,7 +8,7 @@ int main(void)
 
     while (!window->shouldClose()) {
         window->pollEvents();
-        window->display();
+        window->flush();
         std::this_thread::sleep_for(std::chrono::milliseconds(16));
     }
 }
