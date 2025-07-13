@@ -70,6 +70,16 @@ target_compile_options(vulkan_engine PRIVATE
     -Wwrite-strings
 )
 
+########################################
+# NOTE: debug
+########################################
+option(ENABLE_DEBUG "Enable debug macros and flags" OFF)
+
+if(ENABLE_DEBUG)
+    target_compile_definitions(vulkan_engine PRIVATE DEBUG=1)
+endif()
+
+
 # ########################################
 # # NOTE: unit-tests
 # ########################################
