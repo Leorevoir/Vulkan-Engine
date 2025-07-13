@@ -1,5 +1,5 @@
-#include <VK/Error.hpp>
-#include <VK/Graphics/Swapchain/Swapchain.hpp>
+#include <VKE/Error.hpp>
+#include <VKE/Graphics/Swapchain/VulkanSwapchain.hpp>
 
 /**
  * helper
@@ -14,7 +14,7 @@
     {                                                                                                                                                                    \
         _##entrypoint = reinterpret_cast<PFN_vk##entrypoint>(vkGetInstanceProcAddr(inst, "vk" #entrypoint));                                                             \
         if (_##entrypoint == NULL) {                                                                                                                                     \
-            throw exception::RuntimeError("vk::Swapchain", "Failed to get instance procedure address for vk" #entrypoint);                                               \
+            throw exception::RuntimeError("vke::priv::Swapchain", "Failed to get instance procedure address for vk" #entrypoint);                                        \
         }                                                                                                                                                                \
     }
 
@@ -22,7 +22,7 @@
     {                                                                                                                                                                    \
         _##entrypoint = reinterpret_cast<PFN_vk##entrypoint>(vkGetDeviceProcAddr(dev, "vk" #entrypoint));                                                                \
         if (_##entrypoint == NULL) {                                                                                                                                     \
-            throw exception::RuntimeError("vk::Swapchain", "Failed to get device procedure address for vk" #entrypoint);                                                 \
+            throw exception::RuntimeError("vke::priv::Swapchain", "Failed to get device procedure address for vk" #entrypoint);                                          \
         }                                                                                                                                                                \
     }
 
@@ -30,13 +30,13 @@
 * public
 */
 
-void vk::Swapchain::init(Window &window)
+void vke::priv::Swapchain::init(Window &window)
 {
     u32 queue_count;
 
     window.createVulkanSurface(_instance, _surface);
 
-    vkGetPhysicalDeviceQueueFamilyProperties(_physical_device, &queue_count, VK_NULL_PTR);
+    vkGetPhysicalDeviceQueueFamilyProperties(_physical_device, &queue_count, VKE_NULL_PTR);
     assert(queue_count >= 1);
 
     std::vector<VkQueueFamilyProperties> queue_properties(queue_count);
@@ -67,7 +67,7 @@ void vk::Swapchain::init(Window &window)
             }
         }
 
-        if (supports_presenting[i] == VK_TRUE) {
+        if (supports_presenting[i] == VKE_TRUE) {
             graphics_queue_index = i;
             presenting_queue_index = i;
         }
@@ -77,7 +77,7 @@ void vk::Swapchain::init(Window &window)
 
         for (u32 i = 0; i < queue_count; ++i) {
 
-            if (supports_presenting[i] == VK_TRUE) {
+            if (supports_presenting[i] == VKE_TRUE) {
                 presenting_queue_index = i;
                 break;
             }
@@ -85,22 +85,22 @@ void vk::Swapchain::init(Window &window)
     }
 
     if (graphics_queue_index == UINT32_MAX || presenting_queue_index == UINT32_MAX) {
-        throw exception::RuntimeError("vk::Swapchain::init", "No suitable queue family found for graphics and/or presenting.");
+        throw exception::RuntimeError("vke::priv::Swapchain::init", "No suitable queue family found for graphics and/or presenting.");
     }
 
     if (graphics_queue_index != presenting_queue_index) {
-        throw exception::RuntimeError("vk::Swapchain::init", "Graphics and presenting queue families must be the same.");
+        throw exception::RuntimeError("vke::priv::Swapchain::init", "Graphics and presenting queue families must be the same.");
     }
 
     _queue_index = graphics_queue_index;
 
     u32 format_count;
 
-    VK_ASSERT(_GetPhysicalDeviceSurfaceFormatsKHR(_physical_device, _surface, &format_count, VK_NULL_PTR));
+    VKE_ASSERT(_GetPhysicalDeviceSurfaceFormatsKHR(_physical_device, _surface, &format_count, VKE_NULL_PTR));
     assert(format_count > 0);
 
     std::vector<VkSurfaceFormatKHR> surface_formats(format_count);
-    VK_ASSERT(_GetPhysicalDeviceSurfaceFormatsKHR(_physical_device, _surface, &format_count, surface_formats.data()));
+    VKE_ASSERT(_GetPhysicalDeviceSurfaceFormatsKHR(_physical_device, _surface, &format_count, surface_formats.data()));
 
     if (format_count == 1 && surface_formats[0].format == VK_FORMAT_UNDEFINED) {
         color._format = VK_FORMAT_B8G8R8A8_UNORM;
@@ -120,7 +120,7 @@ void vk::Swapchain::init(Window &window)
     color._space = surface_formats[0].colorSpace;
 }
 
-void vk::Swapchain::connect(VkInstance instance, VkPhysicalDevice physical_device, VkDevice device)
+void vke::priv::Swapchain::connect(VkInstance instance, VkPhysicalDevice physical_device, VkDevice device)
 {
     _instance = instance;
     _physical_device = physical_device;
@@ -137,18 +137,18 @@ void vk::Swapchain::connect(VkInstance instance, VkPhysicalDevice physical_devic
     GET_DEVICE_PROC_ADDR(_device, QueuePresentKHR);
 }
 
-void vk::Swapchain::create(vk::maths::Vector2u &size, bool vsync)
+void vke::priv::Swapchain::create(vke::maths::Vector2u &size, bool vsync)
 {
     VkSwapchainKHR old_swapchain = _swapchain;
     VkSurfaceCapabilitiesKHR surface_capabilities;
     u32 presenting_mode_count;
 
-    VK_ASSERT(_GetPhysicalDeviceSurfaceCapabilitiesKHR(_physical_device, _surface, &surface_capabilities));
-    VK_ASSERT(_GetPhysicalDeviceSurfacePresentModesKHR(_physical_device, _surface, &presenting_mode_count, VK_NULL_PTR));
+    VKE_ASSERT(_GetPhysicalDeviceSurfaceCapabilitiesKHR(_physical_device, _surface, &surface_capabilities));
+    VKE_ASSERT(_GetPhysicalDeviceSurfacePresentModesKHR(_physical_device, _surface, &presenting_mode_count, VKE_NULL_PTR));
     assert(presenting_mode_count > 0);
 
     std::vector<VkPresentModeKHR> presenting_modes(presenting_mode_count);
-    VK_ASSERT(_GetPhysicalDeviceSurfacePresentModesKHR(_physical_device, _surface, &presenting_mode_count, presenting_modes.data()));
+    VKE_ASSERT(_GetPhysicalDeviceSurfacePresentModesKHR(_physical_device, _surface, &presenting_mode_count, presenting_modes.data()));
 
     VkExtent2D extent = {};
 
@@ -218,7 +218,7 @@ void vk::Swapchain::create(vk::maths::Vector2u &size, bool vsync)
 
     for (const auto &composite_alpha_flag : composite_alpha_flags_list) {
 
-        if (surface_capabilities.supportedCompositeAlpha & composite_alpha_flag) {
+        if (surface_capabilities.supportedCompositeAlpha & static_cast<u32>(composite_alpha_flag)) {
             composite_alpha_flags = composite_alpha_flag;
             break;
         }
@@ -245,7 +245,7 @@ void vk::Swapchain::create(vk::maths::Vector2u &size, bool vsync)
     swapchain_create_info.pQueueFamilyIndices = NULL;
     swapchain_create_info.presentMode = sc_present_mode;
     swapchain_create_info.oldSwapchain = old_swapchain;
-    swapchain_create_info.clipped = VK_TRUE;//<< setting clipped to VK_TRUE allows the implementation to discard rendering outside of the surface area
+    swapchain_create_info.clipped = VKE_TRUE;//<< setting clipped to VKE_TRUE allows the implementation to discard rendering outside of the surface area
     swapchain_create_info.compositeAlpha = composite_alpha_flags;
 
     if (surface_capabilities.supportedUsageFlags & VK_IMAGE_USAGE_TRANSFER_SRC_BIT) {
@@ -256,18 +256,18 @@ void vk::Swapchain::create(vk::maths::Vector2u &size, bool vsync)
         swapchain_create_info.imageUsage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
     }
 
-    VK_ASSERT(vkCreateSwapchainKHR(_device, &swapchain_create_info, VK_NULL_PTR, &_swapchain));
+    VKE_ASSERT(vkCreateSwapchainKHR(_device, &swapchain_create_info, VKE_NULL_PTR, &_swapchain));
 
     _destroy_buffer();
 
-    if (old_swapchain != VK_NULL_PTR) {
-        _DestroySwapchainKHR(_device, old_swapchain, VK_NULL_PTR);
-        old_swapchain = VK_NULL_PTR;
+    if (old_swapchain != VKE_NULL_PTR) {
+        _DestroySwapchainKHR(_device, old_swapchain, VKE_NULL_PTR);
+        old_swapchain = VKE_NULL_PTR;
     }
 
-    VK_ASSERT(_GetSwapchainImagesKHR(_device, _swapchain, &_image_count, VK_NULL_PTR));
+    VKE_ASSERT(_GetSwapchainImagesKHR(_device, _swapchain, &_image_count, VKE_NULL_PTR));
     _images.resize(_image_count);
-    VK_ASSERT(_GetSwapchainImagesKHR(_device, _swapchain, &_image_count, _images.data()));
+    VKE_ASSERT(_GetSwapchainImagesKHR(_device, _swapchain, &_image_count, _images.data()));
     _buffers.resize(_image_count);
 
     for (u32 i = 0; i < _image_count; ++i) {
@@ -289,29 +289,29 @@ void vk::Swapchain::create(vk::maths::Vector2u &size, bool vsync)
 
         colorAttachmentView.image = _buffers[i]._image;
 
-        VK_ASSERT(vkCreateImageView(_device, &colorAttachmentView, nullptr, &_buffers[i]._view));
+        VKE_ASSERT(vkCreateImageView(_device, &colorAttachmentView, nullptr, &_buffers[i]._view));
     }
 }
 
-VkResult vk::Swapchain::next(VkSemaphore present_semaphore, u32 &image_index)
+VkResult vke::priv::Swapchain::next(VkSemaphore present_semaphore, u32 &image_index)
 {
     if (_swapchain) {
         return _AcquireNextImageKHR(_device, _swapchain, UINT64_MAX, present_semaphore, VK_NULL_HANDLE, &image_index);
     }
-    return VK_SUCCESS;
+    return VKE_SUCCESS;
 }
 
-VkResult vk::Swapchain::queue(VkQueue queue, u32 image_index, VkSemaphore wait_semaphore)
+VkResult vke::priv::Swapchain::queue(VkQueue queue, u32 image_index, VkSemaphore wait_semaphore)
 {
     VkPresentInfoKHR present_info = {};
 
     present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-    present_info.pNext = VK_NULL_PTR;
+    present_info.pNext = VKE_NULL_PTR;
     present_info.swapchainCount = 1;
     present_info.pSwapchains = &_swapchain;
     present_info.pImageIndices = &image_index;
 
-    if (wait_semaphore != VK_NULL_PTR) {
+    if (wait_semaphore != VKE_NULL_PTR) {
         present_info.pWaitSemaphores = &wait_semaphore;
         present_info.waitSemaphoreCount = 1;
     }
@@ -320,19 +320,19 @@ VkResult vk::Swapchain::queue(VkQueue queue, u32 image_index, VkSemaphore wait_s
         return vkQueuePresentKHR(queue, &present_info);
     }
 
-    return VK_SUCCESS;
+    return VKE_SUCCESS;
 }
 
-void vk::Swapchain::destroy()
+void vke::priv::Swapchain::destroy()
 {
     _destroy_buffer();
     if (_swapchain) {
-        vkDestroySwapchainKHR(_device, _swapchain, VK_NULL_PTR);
-        _swapchain = VK_NULL_PTR;
+        vkDestroySwapchainKHR(_device, _swapchain, VKE_NULL_PTR);
+        _swapchain = VKE_NULL_PTR;
     }
     if (_surface) {
-        vkDestroySurfaceKHR(_instance, _surface, VK_NULL_PTR);
-        _surface = VK_NULL_PTR;
+        vkDestroySurfaceKHR(_instance, _surface, VKE_NULL_PTR);
+        _surface = VKE_NULL_PTR;
     }
 }
 
@@ -340,17 +340,17 @@ void vk::Swapchain::destroy()
 * private
 */
 
-void vk::Swapchain::_destroy_buffer()
+void vke::priv::Swapchain::_destroy_buffer()
 {
     for (u32 i = 0; i < _buffers.size(); ++i) {
-        //TODO: use VK_SAFE_CLEAN macro
+        //TODO: use VKE_SAFE_CLEAN macro
         if (_buffers[i]._view) {
-            vkDestroyImageView(_device, _buffers[i]._view, VK_NULL_PTR);
-            _buffers[i]._view = VK_NULL_PTR;
+            vkDestroyImageView(_device, _buffers[i]._view, VKE_NULL_PTR);
+            _buffers[i]._view = VKE_NULL_PTR;
         }
         if (_buffers[i]._image) {
-            vkDestroyImage(_device, _buffers[i]._image, VK_NULL_PTR);
-            _buffers[i]._image = VK_NULL_PTR;
+            vkDestroyImage(_device, _buffers[i]._image, VKE_NULL_PTR);
+            _buffers[i]._image = VKE_NULL_PTR;
         }
     }
     _buffers.clear();

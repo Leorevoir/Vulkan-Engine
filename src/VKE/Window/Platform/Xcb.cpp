@@ -1,11 +1,12 @@
-#ifndef VK_USE_PLATFORM_XCB_KHR
-#define VK_USE_PLATFORM_XCB_KHR
+#ifndef VKE_USE_PLATFORM_XCB_KHR
+#define VKE_USE_PLATFORM_XCB_KHR
 #endif
-#if defined(VK_USE_PLATFORM_XCB_KHR)
 
-#include <VK/Error.hpp>
-#include <VK/Memory.hpp>
-#include <VK/Window/Platform/Xcb.hpp>
+#if defined(VKE_USE_PLATFORM_XCB_KHR)
+
+#include <VKE/Error.hpp>
+#include <VKE/Memory.hpp>
+#include <VKE/Window/Platform/Xcb.hpp>
 
 /**
  * helpers
@@ -22,17 +23,17 @@ static inline xcb_intern_atom_reply_t *_inter_atom_helper(xcb_connection_t *conn
 * public
 */
 
-vk::detail::VK_XCBWindow::VK_XCBWindow(const maths::Vector2u &size, const std::string &title) : VK_BackendWindow(size, title)
+vke::detail::VKE_XCBWindow::VKE_XCBWindow(const maths::Vector2u &size, const std::string &title) : VKE_BackendWindow(size, title)
 {
     _create();
 }
 
-vk::detail::VK_XCBWindow::~VK_XCBWindow()
+vke::detail::VKE_XCBWindow::~VKE_XCBWindow()
 {
     _destroy();
 }
 
-void vk::detail::VK_XCBWindow::event()
+void vke::detail::VKE_XCBWindow::event()
 {
     if (_closed) {
         return;
@@ -42,16 +43,29 @@ void vk::detail::VK_XCBWindow::event()
 
     while ((event = xcb_poll_for_event(_connection))) {
         _handle_events(event);
-        VK_SAFE_CLEAN(event, memory::clean);
+        VKE_SAFE_CLEAN(event, memory::free(event));
     }
 }
 
-void vk::detail::VK_XCBWindow::flush()
+void vke::detail::VKE_XCBWindow::flush()
 {
     if (_closed) {
         return;
     }
     xcb_flush(_connection);
+}
+
+void vke::detail::VKE_XCBWindow::createVulkanSurface(VkInstance instance, VkSurfaceKHR &out_surface)
+{
+    VkXcbSurfaceCreateInfoKHR surface_info = {
+        .sType = VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR,
+        .pNext = VKE_NULL_PTR,
+        .flags = 0,
+        .connection = _connection,
+        .window = _window,
+    };
+
+    VKE_ASSERT(vkCreateXcbSurfaceKHR(instance, &surface_info, VKE_NULL_PTR, &out_surface));
 }
 
 /**
@@ -60,7 +74,7 @@ void vk::detail::VK_XCBWindow::flush()
 
 // clang-format off
 
-void vk::detail::VK_XCBWindow::_create()
+void vke::detail::VKE_XCBWindow::_create()
 {
     _destroy();
     _connect();
@@ -68,10 +82,10 @@ void vk::detail::VK_XCBWindow::_create()
     _closed = false;
 }
 
-void vk::detail::VK_XCBWindow::_destroy()
+void vke::detail::VKE_XCBWindow::_destroy()
 {
     if (_atom_wm_delete_window) {
-        VK_SAFE_CLEAN(_atom_wm_delete_window, memory::clean);
+        VKE_SAFE_CLEAN(_atom_wm_delete_window, memory::free(_atom_wm_delete_window));
         _atom_wm_delete_window = nullptr;
     }
     if (_window) {
@@ -86,14 +100,14 @@ void vk::detail::VK_XCBWindow::_destroy()
     _closed = true;
 }
 
-void vk::detail::VK_XCBWindow::_connect()
+void vke::detail::VKE_XCBWindow::_connect()
 {
     const xcb_setup_t *setup;
     i32 scr;
 
     _connection = xcb_connect(NULL, &scr);
     if (_connection == NULL) {
-        throw vk::exception::RuntimeError("vk::detail::VK_XCBWindow::_connect", "Failed to connect to X server");
+        throw vke::exception::RuntimeError("vke::detail::VKE_XCBWindow::_connect", "Failed to connect to X server");
     }
 
     setup = xcb_get_setup(_connection);
@@ -107,10 +121,10 @@ void vk::detail::VK_XCBWindow::_connect()
     _screen = iter.data;
 }
 
-void vk::detail::VK_XCBWindow::_setup()
+void vke::detail::VKE_XCBWindow::_setup()
 {
     const u32 value_mask = XCB_CW_BACK_PIXEL | XCB_CW_EVENT_MASK;
-    const u32 value_list[2] = { _screen->black_pixel, VK_XCB_EVENT_MASKS };
+    const u32 value_list[2] = { _screen->black_pixel, VKE_XCB_EVENT_MASKS };
 
     _window = xcb_generate_id(_connection);
 
@@ -122,11 +136,11 @@ void vk::detail::VK_XCBWindow::_setup()
 
     xcb_change_property(_connection, XCB_PROP_MODE_REPLACE, _window, reply_protocols->atom, 4, 32, 1, &reply_delete->atom);
     _atom_wm_delete_window = reply_delete;
-    VK_SAFE_CLEAN(reply_protocols, memory::clean);
+    VKE_SAFE_CLEAN(reply_protocols, memory::free(reply_protocols));
     xcb_map_window(_connection, _window);
 }
 
-void vk::detail::VK_XCBWindow::_handle_events(xcb_generic_event_t *event)
+void vke::detail::VKE_XCBWindow::_handle_events(xcb_generic_event_t *event)
 {
     switch (event->response_type & ~0x80) {
 

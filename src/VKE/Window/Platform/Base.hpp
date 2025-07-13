@@ -4,23 +4,24 @@
     #error "Windows support is not implemented yet."
 #endif
 
-#define VK_FORCE_CLEAR_COLOR 0x00aade87
+#define VKE_FORCE_CLEAR_COLOR 0x00aade87
 
 #include <Lib/Maths/Vector.hpp>
+#include <VKE/Backend.hpp>
 
-namespace vk {
+namespace vke {
 
 namespace detail {
 
-class VK_HIDDEN VK_BackendWindow
+class VKE_HIDDEN VKE_BackendWindow
 {
     public:
-        VK_INLINE constexpr VK_BackendWindow(const maths::Vector2u &size, const std::string &title) : _size(size), _title(title)
+        VKE_INLINE constexpr VKE_BackendWindow(const maths::Vector2u &size, const std::string &title) : _size(size), _title(title)
         {
             /* __ctor__ */
         }
 
-        virtual ~VK_BackendWindow() = default;
+        virtual ~VKE_BackendWindow() = default;
 
         maths::Vector2u _size;
         std::string _title;
@@ -28,8 +29,9 @@ class VK_HIDDEN VK_BackendWindow
 
         virtual void event() = 0;
         virtual void flush() = 0;
+        virtual void createVulkanSurface(VkInstance instance, VkSurfaceKHR &out_surface) = 0;
 };
 
 }// namespace detail
 
-}// namespace vk
+}// namespace vke

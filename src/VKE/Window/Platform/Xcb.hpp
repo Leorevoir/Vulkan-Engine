@@ -1,27 +1,27 @@
 #pragma once
 
-#if defined(VK_USE_PLATFORM_XCB_KHR)
+#if defined(VKE_USE_PLATFORM_XCB_KHR)
 
-    #include <VK/Backend.hpp>
-    #include <VK/Macros.hpp>
-    #include <VK/Window/Platform/Base.hpp>
+    #include <VKE/Macros.hpp>
+    #include <VKE/Window/Platform/Base.hpp>
 
-    #define VK_XCB_EVENT_MASKS                                                                                                                                           \
+    #define VKE_XCB_EVENT_MASKS                                                                                                                                          \
         XCB_EVENT_MASK_KEY_RELEASE | XCB_EVENT_MASK_KEY_PRESS | XCB_EVENT_MASK_EXPOSURE | XCB_EVENT_MASK_STRUCTURE_NOTIFY | XCB_EVENT_MASK_POINTER_MOTION                \
             | XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE
 
-namespace vk {
+namespace vke {
 
 namespace detail {
 
-class VK_HIDDEN VK_XCBWindow final : public VK_BackendWindow
+class VKE_HIDDEN VKE_XCBWindow final : public VKE_BackendWindow
 {
     public:
-        VK_XCBWindow(const maths::Vector2u &size, const std::string &title);
-        ~VK_XCBWindow() override;
+        VKE_XCBWindow(const maths::Vector2u &size, const std::string &title);
+        ~VKE_XCBWindow() override;
 
         void event() override;
         void flush() override;
+        void createVulkanSurface(VkInstance instance, VkSurfaceKHR &out_surface) override;
 
     private:
         void _create();
@@ -40,6 +40,6 @@ class VK_HIDDEN VK_XCBWindow final : public VK_BackendWindow
 
 }// namespace detail
 
-}// namespace vk
+}// namespace vke
 
 #endif

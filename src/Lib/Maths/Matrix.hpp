@@ -2,52 +2,52 @@
 
 #include <Lib/Maths/Vector.hpp>
 
-#include <VK/Types.hpp>
+#include <VKE/Types.hpp>
 
-namespace vk::maths {
+namespace vke::maths {
 
 template<usize N, usize M, typename T>
-    requires(VK_MATHS_NOT_NULL(N) && VK_MATHS_NOT_NULL(M) && VK_MATHS_ASSERT_NUMBERS(T))
+    requires(VKE_MATHS_NOT_NULL(N) && VKE_MATHS_NOT_NULL(M) && VKE_MATHS_ASSERT_NUMBERS(T))
 
-VKM_API struct Matrix {
+VKEM_API struct Matrix {
 
     public:
-        VK_MATHS_MAT_TEMPLATE(N, M, T)
+        VKE_MATHS_MAT_TEMPLATE(N, M, T)
 
-        VK_NODISCARD VK_INLINE VK_CONSTEXPR Matrix() = default;
+        VKE_NODISCARD VKE_INLINE VKE_CONSTEXPR Matrix() = default;
 
-        VK_NODISCARD VK_INLINE VK_CONSTEXPR explicit Matrix(const T &value)
+        VKE_NODISCARD VKE_INLINE VKE_CONSTEXPR explicit Matrix(const T &value)
         {
             std::fill(_data, _data + (N * M), value);
         }
 
         template<typename... Args>
-            requires(sizeof...(Args) == N * M && (VK_MATHS_ASSERT_CONVERTIBLE(Args, T) && ...))
-        VK_NODISCARD VK_INLINE VK_CONSTEXPR explicit Matrix(Args &&...args) : _data{static_cast<T>(args)...}
+            requires(sizeof...(Args) == N * M && (VKE_MATHS_ASSERT_CONVERTIBLE(Args, T) && ...))
+        VKE_NODISCARD VKE_INLINE VKE_CONSTEXPR explicit Matrix(Args &&...args) : _data{static_cast<T>(args)...}
         {
             /* __conversion__ */
         }
 
         template<typename U>
-            requires(VK_MATHS_ASSERT_CONVERTIBLE(U, T))
-        VK_NODISCARD VK_INLINE VK_CONSTEXPR explicit Matrix(const Matrix<N, M, U> &other)
+            requires(VKE_MATHS_ASSERT_CONVERTIBLE(U, T))
+        VKE_NODISCARD VKE_INLINE VKE_CONSTEXPR explicit Matrix(const Matrix<N, M, U> &other)
         {
             for (size_type i = 0; i < N * M; ++i) {
                 _data[i] = static_cast<T>(other._data[i]);
             }
         }
 
-        VK_NODISCARD VK_INLINE VK_CONSTEXPR T &operator[](size_type index)
+        VKE_NODISCARD VKE_INLINE VKE_CONSTEXPR T &operator[](size_type index)
         {
             return _data[index];
         }
 
-        VK_NODISCARD VK_INLINE VK_CONSTEXPR const T &operator[](size_type index) const
+        VKE_NODISCARD VKE_INLINE VKE_CONSTEXPR const T &operator[](size_type index) const
         {
             return _data[index];
         }
 
-        VK_NODISCARD VK_INLINE VK_CONSTEXPR T *data()
+        VKE_NODISCARD VKE_INLINE VKE_CONSTEXPR T *data()
         {
             return _data;
         }
@@ -56,4 +56,4 @@ VKM_API struct Matrix {
         T _data[N * M] = {0};
 };
 
-}// namespace vk::maths
+}// namespace vke::maths

@@ -2,28 +2,26 @@
 
 #include <Lib/Maths/Vector.hpp>
 
-#include <VK/Backend.hpp>
-#include <VK/Macros.hpp>
-#include <VK/Types.hpp>
-#include <VK/Window/Window.hpp>
+#include <VKE/Backend.hpp>
+#include <VKE/Macros.hpp>
+#include <VKE/Types.hpp>
+#include <VKE/Window/Window.hpp>
 
-namespace vk {
+namespace vke {
 
 namespace priv {
 
-struct VK_HIDDEN SwapchainBuffers {
+struct VKE_HIDDEN SwapchainBuffers {
         VkImage _image;
         VkImageView _view;
 };
 
-struct VK_HIDDEN SwapChainColor {
+struct VKE_HIDDEN SwapChainColor {
         VkFormat _format;
         VkColorSpaceKHR _space;
 };
 
-}// namespace priv
-
-class VK_HIDDEN Swapchain final : public NonMovable
+class VKE_HIDDEN Swapchain final : public NonMovable
 {
     public:
         void init(Window &window);
@@ -31,25 +29,25 @@ class VK_HIDDEN Swapchain final : public NonMovable
         void connect(VkInstance instance, VkPhysicalDevice physical_device, VkDevice device);
 
         VkResult next(VkSemaphore present_semaphore, u32 &image_index);
-        VkResult queue(VkQueue queue, u32 image_index, VkSemaphore wait_semaphore = VK_NULL_PTR);
+        VkResult queue(VkQueue queue, u32 image_index, VkSemaphore wait_semaphore = VKE_NULL_PTR);
 
         void destroy();
 
-        priv::SwapChainColor color;
+        SwapChainColor color;
 
     private:
         u32 _queue_index = 0;
         u32 _image_count = 0;
 
-        VkDevice _device = VK_NULL_PTR;
-        VkInstance _instance = VK_NULL_PTR;
-        VkSurfaceKHR _surface = VK_NULL_PTR;
-        VkPhysicalDevice _physical_device = VK_NULL_PTR;
+        VkDevice _device = VKE_NULL_PTR;
+        VkInstance _instance = VKE_NULL_PTR;
+        VkSurfaceKHR _surface = VKE_NULL_PTR;
+        VkPhysicalDevice _physical_device = VKE_NULL_PTR;
 
-        VkSwapchainKHR _swapchain = VK_NULL_PTR;
+        VkSwapchainKHR _swapchain = VKE_NULL_PTR;
 
         std::vector<VkImage> _images;
-        std::vector<priv::SwapchainBuffers> _buffers;
+        std::vector<SwapchainBuffers> _buffers;
 
         PFN_vkQueuePresentKHR _QueuePresentKHR;
         PFN_vkCreateSwapchainKHR _CreateSwapchainKHR;
@@ -64,4 +62,6 @@ class VK_HIDDEN Swapchain final : public NonMovable
         void _destroy_buffer();
 };
 
-}// namespace vk
+}// namespace priv
+
+}// namespace vke

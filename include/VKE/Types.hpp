@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <type_traits>
 
-namespace vk {
+namespace vke {
 
 struct NonCopyable {
 
@@ -25,7 +25,7 @@ struct NonMovable {
         NonMovable &operator=(const NonMovable &&) = delete;
 };
 
-}// namespace vk
+}// namespace vke
 
 using u8 = uint8_t;
 using u16 = uint16_t;

@@ -1,19 +1,19 @@
 #pragma once
 
-#include <VK/Types.hpp>
+#include <VKE/Types.hpp>
 
 #include <exception>
 #include <sstream>
 #include <string>
 
-#define __VK_ERROR_INHERIT(N)                                                                                                                                            \
+#define __VKE_ERROR_INHERIT(N)                                                                                                                                           \
     template<typename... Args>                                                                                                                                           \
     constexpr explicit N(std::string where, Args &&...args) : Error(std::move(where), std::forward<Args>(args)...)                                                       \
     {                                                                                                                                                                    \
         /* __ctor__ */                                                                                                                                                   \
     }
 
-namespace vk::exception {
+namespace vke::exception {
 
 class Error : public std::exception
 {
@@ -51,25 +51,25 @@ class Error : public std::exception
 class InvalidArgument final : public Error
 {
     public:
-        __VK_ERROR_INHERIT(InvalidArgument)
+        __VKE_ERROR_INHERIT(InvalidArgument)
 };
 
 class RuntimeError final : public Error
 {
     public:
-        __VK_ERROR_INHERIT(RuntimeError)
+        __VKE_ERROR_INHERIT(RuntimeError)
 };
 
 class NotImplemented final : public Error
 {
     public:
-        __VK_ERROR_INHERIT(NotImplemented)
+        __VKE_ERROR_INHERIT(NotImplemented)
 };
 
 class BadAlloc final : public Error
 {
     public:
-        __VK_ERROR_INHERIT(BadAlloc)
+        __VKE_ERROR_INHERIT(BadAlloc)
 };
 
-}// namespace vk::exception
+}// namespace vke::exception

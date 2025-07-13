@@ -1,21 +1,21 @@
-#include <VK/Renderer/RenderLoop.hpp>
+#include <VKE/Renderer/RenderLoop.hpp>
 #include <thread>
 
 /**
 * public
 */
 
-vk::priv::RenderLoop::RenderLoop(const f64 frame_rate, render::Engine &engine) : _engine(engine), _is_running(false), _frame_time(1.0 / frame_rate)
+vke::priv::RenderLoop::RenderLoop(const f64 frame_rate, RenderEngine &engine) : _engine(engine), _is_running(false), _frame_time(1.0 / frame_rate)
 {
     _engine.init();
 }
 
-vk::priv::RenderLoop::~RenderLoop()
+vke::priv::RenderLoop::~RenderLoop()
 {
     shutdown();
 }
 
-void vk::priv::RenderLoop::start(vk::Window &window)
+void vke::priv::RenderLoop::start(Window &window)
 {
     if (_is_running) {
         return;
@@ -25,7 +25,7 @@ void vk::priv::RenderLoop::start(vk::Window &window)
     _run(window);
 }
 
-void vk::priv::RenderLoop::shutdown()
+void vke::priv::RenderLoop::shutdown()
 {
     if (!_is_running) {
         return;
@@ -38,7 +38,7 @@ void vk::priv::RenderLoop::shutdown()
 * private
 */
 
-void vk::priv::RenderLoop::_run(vk::Window &window)
+void vke::priv::RenderLoop::_run(Window &window)
 {
     while (!window.shouldClose() && _is_running) {
         window.pollEvents();
@@ -47,7 +47,7 @@ void vk::priv::RenderLoop::_run(vk::Window &window)
     }
 }
 
-void vk::priv::RenderLoop::_destroy()
+void vke::priv::RenderLoop::_destroy()
 {
     _engine.shutdown();
 }

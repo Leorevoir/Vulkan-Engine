@@ -1,17 +1,15 @@
 #pragma once
 
-#include <VK/Macros.hpp>
+#include <VKE/Macros.hpp>
 
-namespace vk {
+namespace vke {
 
 namespace priv {
 
-namespace render {
-
-class VK_HIDDEN Engine
+class VKE_HIDDEN RenderEngine
 {
     public:
-        virtual ~Engine() = default;
+        virtual ~RenderEngine() = default;
 
         virtual void init() = 0;
         virtual void start() = 0;
@@ -19,8 +17,6 @@ class VK_HIDDEN Engine
         virtual void shutdown() = 0;
 };
 
-}// namespace render
-
 }// namespace priv
 
-}// namespace vk
+}// namespace vke
