@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Lib/Maths/Base.hpp>
+#include <VK/Macros.hpp>
 #include <VK/Types.hpp>
 
 #include <cmath>
@@ -90,21 +91,21 @@ struct VectorData<4, T> {
 template<usize N, typename T>
     requires(VK_MATHS_NOT_NULL(N) && VK_MATHS_ASSERT_NUMBERS(T))
 
-struct Vector : public detail::VectorData<N, T> {
+VKM_API struct Vector : public detail::VectorData<N, T> {
 
         VK_MATHS_ASSERT_VECTOR_SIZE(N)
 
     public:
         VK_MATHS_VEC_TEMPLATE(N, T)
 
-        VKM_API VK_NODISCARD VK_INLINE constexpr Vector() = default;
+        VK_NODISCARD VK_INLINE VK_CONSTEXPR Vector() = default;
 
-        VKM_API VK_NODISCARD VK_INLINE constexpr Vector(const T &value)
+        VK_NODISCARD VK_INLINE VK_CONSTEXPR Vector(const T &value)
         {
             std::fill(this->_data.begin(), this->_data.end(), value);
         }
 
-        VKM_API VK_NODISCARD VK_INLINE constexpr Vector(const std::initializer_list<T> &il)
+        VK_NODISCARD VK_INLINE VK_CONSTEXPR Vector(const std::initializer_list<T> &il)
         {
             size_type i = 0;
 
@@ -121,7 +122,7 @@ struct Vector : public detail::VectorData<N, T> {
 
         template<typename... Args>
             requires(sizeof...(Args) == N && (VK_MATHS_ASSERT_CONVERTIBLE(Args, T) && ...))
-        VKM_API VK_NODISCARD VK_INLINE constexpr Vector(Args &&...args)
+        VK_NODISCARD VK_INLINE VK_CONSTEXPR Vector(Args &&...args)
         {
             const T temp[N] = {static_cast<T>(args)...};
 
@@ -132,19 +133,19 @@ struct Vector : public detail::VectorData<N, T> {
 
         template<typename U>
             requires(VK_MATHS_ASSERT_CONVERTIBLE(U, T))
-        VKM_API VK_NODISCARD VK_INLINE constexpr Vector(const Vector<N, U> &other)
+        VK_NODISCARD VK_INLINE VK_CONSTEXPR Vector(const Vector<N, U> &other)
         {
             for (size_type i = 0; i < N; ++i) {
                 this->_data[i] = static_cast<T>(other[i]);
             }
         }
 
-        VKM_API VK_NODISCARD VK_INLINE constexpr Vector operator+() const
+        VK_NODISCARD VK_INLINE VK_CONSTEXPR Vector operator+() const
         {
             return *this;
         }
 
-        VKM_API VK_INLINE constexpr Vector operator-() const
+        VK_INLINE VK_CONSTEXPR Vector operator-() const
         {
             Vector v;
 
@@ -154,7 +155,7 @@ struct Vector : public detail::VectorData<N, T> {
             return v;
         }
 
-        VKM_API VK_INLINE constexpr Vector &operator*=(const T &t)
+        VK_INLINE VK_CONSTEXPR Vector &operator*=(const T &t)
         {
             for (size_type i = 0; i != N; ++i) {
                 this->_data[i] *= t;
@@ -162,7 +163,7 @@ struct Vector : public detail::VectorData<N, T> {
             return *this;
         }
 
-        VKM_API VK_INLINE constexpr Vector &operator/=(const T &t)
+        VK_INLINE VK_CONSTEXPR Vector &operator/=(const T &t)
         {
             for (size_type i = 0; i != N; ++i) {
                 this->_data[i] /= t;
@@ -170,7 +171,7 @@ struct Vector : public detail::VectorData<N, T> {
             return *this;
         }
 
-        VKM_API VK_INLINE constexpr Vector &operator+=(const T &t)
+        VK_INLINE VK_CONSTEXPR Vector &operator+=(const T &t)
         {
             for (size_type i = 0; i != N; ++i) {
                 this->_data[i] += t;
@@ -178,7 +179,7 @@ struct Vector : public detail::VectorData<N, T> {
             return *this;
         }
 
-        VKM_API VK_INLINE constexpr Vector &operator-=(const T &t)
+        VK_INLINE VK_CONSTEXPR Vector &operator-=(const T &t)
         {
             for (size_type i = 0; i != N; ++i) {
                 this->_data[i] -= t;
@@ -186,7 +187,7 @@ struct Vector : public detail::VectorData<N, T> {
             return *this;
         }
 
-        VKM_API VK_INLINE constexpr Vector &operator*=(const Vector &v)
+        VK_INLINE VK_CONSTEXPR Vector &operator*=(const Vector &v)
         {
             for (size_type i = 0; i != N; ++i) {
                 this->_data[i] *= v[i];
@@ -194,7 +195,7 @@ struct Vector : public detail::VectorData<N, T> {
             return *this;
         }
 
-        VKM_API VK_INLINE constexpr Vector &operator/=(const Vector &v)
+        VK_INLINE VK_CONSTEXPR Vector &operator/=(const Vector &v)
         {
             for (size_type i = 0; i != N; ++i) {
                 this->_data[i] /= v[i];
@@ -202,7 +203,7 @@ struct Vector : public detail::VectorData<N, T> {
             return *this;
         }
 
-        VKM_API VK_INLINE constexpr Vector &operator+=(const Vector &v)
+        VK_INLINE VK_CONSTEXPR Vector &operator+=(const Vector &v)
         {
             for (size_type i = 0; i != N; ++i) {
                 this->_data[i] += v[i];
@@ -210,7 +211,7 @@ struct Vector : public detail::VectorData<N, T> {
             return *this;
         }
 
-        VKM_API VK_INLINE constexpr Vector &operator-=(const Vector &v)
+        VK_INLINE VK_CONSTEXPR Vector &operator-=(const Vector &v)
         {
             for (size_type i = 0; i != N; ++i) {
                 this->_data[i] -= v[i];
@@ -218,7 +219,7 @@ struct Vector : public detail::VectorData<N, T> {
             return *this;
         }
 
-        VKM_API VK_INLINE constexpr Vector &operator=(const T &v)
+        VK_INLINE VK_CONSTEXPR Vector &operator=(const T &v)
         {
             for (size_type i = 0; i != N; ++i) {
                 this->_data[i] = v;
@@ -226,16 +227,16 @@ struct Vector : public detail::VectorData<N, T> {
             return *this;
         }
 
-        VKM_API VK_NODISCARD VK_INLINE constexpr T &operator[](size_type index)
+        VK_NODISCARD VK_INLINE VK_CONSTEXPR T &operator[](size_type index)
         {
             return this->_data[index];
         }
-        VKM_API VK_NODISCARD VK_INLINE constexpr const T &operator[](size_type index) const
+        VK_NODISCARD VK_INLINE VK_CONSTEXPR const T &operator[](size_type index) const
         {
             return this->_data[index];
         }
 
-        VKM_API VK_NODISCARD VK_INLINE constexpr T dot(const Vector &o) const
+        VK_NODISCARD VK_INLINE VK_CONSTEXPR T dot(const Vector &o) const
         {
             T sum = 0;
 
@@ -245,7 +246,7 @@ struct Vector : public detail::VectorData<N, T> {
             return sum;
         }
 
-        VKM_API VK_NODISCARD VK_INLINE constexpr Vector cross(const Vector &o) const
+        VK_NODISCARD VK_INLINE VK_CONSTEXPR Vector cross(const Vector &o) const
         {
             Vector v;
 
@@ -255,7 +256,7 @@ struct Vector : public detail::VectorData<N, T> {
             return v;
         }
 
-        VKM_API VK_INLINE constexpr bool is_zero() const
+        VK_INLINE VK_CONSTEXPR bool is_zero() const
         {
             for (const auto &value : this->_data) {
                 if (value != 0) {
@@ -265,19 +266,19 @@ struct Vector : public detail::VectorData<N, T> {
             return true;
         }
 
-        VKM_API VK_NODISCARD VK_INLINE constexpr T length() const
+        VK_NODISCARD VK_INLINE VK_CONSTEXPR T length() const
         {
             return std::sqrt(dot(*this));
         }
 
-        VKM_API VK_INLINE constexpr void normalize()
+        VK_INLINE VK_CONSTEXPR void normalize()
         {
             if (!is_zero()) {
                 operator*=(1.f / length());
             }
         }
 
-        VKM_API VK_NODISCARD VK_INLINE constexpr Vector normalized() const
+        VK_NODISCARD VK_INLINE VK_CONSTEXPR Vector normalized() const
         {
             Vector v(*this);
 
@@ -287,7 +288,7 @@ struct Vector : public detail::VectorData<N, T> {
 };
 
 template<usize N, typename T>
-VKM_API VK_INLINE constexpr auto operator+(const Vector<N, T> &v, const T &t)
+VK_INLINE VK_CONSTEXPR auto operator+(const Vector<N, T> &v, const T &t)
 {
     Vector<N, T> vec(v);
 
@@ -296,20 +297,20 @@ VKM_API VK_INLINE constexpr auto operator+(const Vector<N, T> &v, const T &t)
 }
 
 template<usize N, typename T, typename L>
-VKM_API VK_NODISCARD VK_INLINE constexpr auto operator+(const L &l, const Vector<N, T> &v)
+VK_NODISCARD VK_INLINE VK_CONSTEXPR auto operator+(const L &l, const Vector<N, T> &v)
 {
     return v + l;
 }
 
 template<usize N, typename T>
-VKM_API VK_NODISCARD VK_INLINE constexpr auto operator+(Vector<N, T> a, const Vector<N, T> &b)
+VK_NODISCARD VK_INLINE VK_CONSTEXPR auto operator+(Vector<N, T> a, const Vector<N, T> &b)
 {
     a += b;
     return a;
 }
 
 template<usize N, typename T, typename R>
-VKM_API VK_NODISCARD VK_INLINE constexpr auto operator*(const Vector<N, T> &v, const R &r)
+VK_NODISCARD VK_INLINE VK_CONSTEXPR auto operator*(const Vector<N, T> &v, const R &r)
 {
     Vector<N, T> vec(v);
 
@@ -318,20 +319,20 @@ VKM_API VK_NODISCARD VK_INLINE constexpr auto operator*(const Vector<N, T> &v, c
 }
 
 template<usize N, typename T, typename L>
-VKM_API VK_NODISCARD VK_INLINE constexpr auto operator*(const L &l, const Vector<N, T> &v)
+VK_NODISCARD VK_INLINE VK_CONSTEXPR auto operator*(const L &l, const Vector<N, T> &v)
 {
     return v * l;
 }
 
 template<usize N, typename T>
-VKM_API VK_NODISCARD VK_INLINE constexpr auto operator*(Vector<N, T> a, const Vector<N, T> &b)
+VK_NODISCARD VK_INLINE VK_CONSTEXPR auto operator*(Vector<N, T> a, const Vector<N, T> &b)
 {
     a *= b;
     return a;
 }
 
 template<usize N, typename T, typename R>
-VKM_API VK_NODISCARD VK_INLINE constexpr auto operator-(const Vector<N, T> &v, const R &r)
+VK_NODISCARD VK_INLINE VK_CONSTEXPR auto operator-(const Vector<N, T> &v, const R &r)
 {
     Vector<N, T> vec(v);
 
@@ -340,20 +341,20 @@ VKM_API VK_NODISCARD VK_INLINE constexpr auto operator-(const Vector<N, T> &v, c
 }
 
 template<usize N, typename T, typename L>
-VKM_API VK_NODISCARD VK_INLINE constexpr auto operator-(const L &l, const Vector<N, T> &v)
+VK_NODISCARD VK_INLINE VK_CONSTEXPR auto operator-(const L &l, const Vector<N, T> &v)
 {
     return -v + l;
 }
 
 template<usize N, typename T>
-VKM_API VK_NODISCARD VK_INLINE constexpr auto operator-(Vector<N, T> a, const Vector<N, T> &b)
+VK_NODISCARD VK_INLINE VK_CONSTEXPR auto operator-(Vector<N, T> a, const Vector<N, T> &b)
 {
     a -= b;
     return a;
 }
 
 template<usize N, typename T, typename R>
-VKM_API VK_NODISCARD VK_INLINE constexpr auto operator/(const Vector<N, T> &v, const R &r)
+VK_NODISCARD VK_INLINE VK_CONSTEXPR auto operator/(const Vector<N, T> &v, const R &r)
 {
     Vector<N, T> vec(v);
 
@@ -362,7 +363,7 @@ VKM_API VK_NODISCARD VK_INLINE constexpr auto operator/(const Vector<N, T> &v, c
 }
 
 template<usize N, typename T, typename L>
-VKM_API VK_NODISCARD VK_INLINE constexpr auto operator/(const L &l, const Vector<N, T> &v)
+VK_NODISCARD VK_INLINE VK_CONSTEXPR auto operator/(const L &l, const Vector<N, T> &v)
 {
     Vector<N, T> vec(v);
 
@@ -370,14 +371,14 @@ VKM_API VK_NODISCARD VK_INLINE constexpr auto operator/(const L &l, const Vector
 }
 
 template<usize N, typename T>
-VKM_API VK_NODISCARD VK_INLINE constexpr auto operator/(Vector<N, T> a, const Vector<N, T> &b)
+VK_NODISCARD VK_INLINE VK_CONSTEXPR auto operator/(Vector<N, T> a, const Vector<N, T> &b)
 {
     a /= b;
     return a;
 }
 
 template<usize N, typename T>
-VKM_API VK_NODISCARD VK_INLINE constexpr std::ostream &operator<<(std::ostream &os, const Vector<N, T> &v)
+VK_NODISCARD VK_INLINE VK_CONSTEXPR std::ostream &operator<<(std::ostream &os, const Vector<N, T> &v)
 {
     os << "Vector<" << N << ", " << typeid(T).name() << ">(";
     for (typename Vector<N, T>::size_type i = 0; i < N; ++i) {

@@ -2,7 +2,15 @@
 
 #include <type_traits>//<< std::is_arithmetic_v
 
-#define VKM_API
+#if defined(VK_ENGINE_EXPORT_API)
+    #ifdef _WIN32
+        #define VKM_API __declspec(dllexport)
+    #else
+        #define VKM_API __attribute__((visibility("default")))
+    #endif
+#else
+    #define VKM_API
+#endif
 
 #define VK_MATHS_NOT_NULL(x) (x > 0)
 #define VK_MATHS_ASSERT_NUMBERS(T) (std::is_arithmetic_v<T>)
