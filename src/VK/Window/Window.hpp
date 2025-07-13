@@ -1,12 +1,13 @@
 #pragma once
 
+#include <VK/Macros.hpp>
 #include <VK/Window/Platform/Base.hpp>
 
 #include <memory>
 
 namespace vk {
 
-class Window final
+class VK_HIDDEN Window final
 {
 
     public:
@@ -17,7 +18,7 @@ class Window final
         VK_NODISCARD const maths::Vector2u &getSize() const;
 
         void pollEvents();
-        void display();
+        void flush();
 
     private:
         std::unique_ptr<detail::VK_BackendWindow> _vk_backend;

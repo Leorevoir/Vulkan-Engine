@@ -1,12 +1,22 @@
 #ifndef VK_USE_PLATFORM_XCB_KHR
 #define VK_USE_PLATFORM_XCB_KHR
 #endif
-
 #if defined(VK_USE_PLATFORM_XCB_KHR)
 
 #include <VK/Error.hpp>
-#include <VK/Utils.hpp>
+#include <VK/Memory.hpp>
 #include <VK/Window/Platform/Xcb.hpp>
+
+/**
+ * helpers
+ */
+
+static inline xcb_intern_atom_reply_t *_inter_atom_helper(xcb_connection_t *conn, bool only_if_exists, const char *str)
+{
+    const xcb_intern_atom_cookie_t cookie = xcb_intern_atom(conn, only_if_exists, static_cast<u16>(std::strlen(str)), str);
+
+    return xcb_intern_atom_reply(conn, cookie, NULL);
+}
 
 /**
 * public
@@ -32,29 +42,16 @@ void vk::detail::VK_XCBWindow::event()
 
     while ((event = xcb_poll_for_event(_connection))) {
         _handle_events(event);
-        utils::clean(event);
+        VK_SAFE_CLEAN(event, memory::clean);
     }
 }
 
-void vk::detail::VK_XCBWindow::display()
+void vk::detail::VK_XCBWindow::flush()
 {
     if (_closed) {
         return;
     }
     xcb_flush(_connection);
-}
-
-/**
- * helpers
- */
-
-#include <cstring>
-
-static inline xcb_intern_atom_reply_t *_inter_atom_helper(xcb_connection_t *conn, bool only_if_exists, const char *str)
-{
-    const xcb_intern_atom_cookie_t cookie = xcb_intern_atom(conn, only_if_exists, static_cast<u16>(std::strlen(str)), str);
-
-    return xcb_intern_atom_reply(conn, cookie, NULL);
 }
 
 /**
@@ -74,7 +71,7 @@ void vk::detail::VK_XCBWindow::_create()
 void vk::detail::VK_XCBWindow::_destroy()
 {
     if (_atom_wm_delete_window) {
-        utils::clean(_atom_wm_delete_window);
+        VK_SAFE_CLEAN(_atom_wm_delete_window, memory::clean);
         _atom_wm_delete_window = nullptr;
     }
     if (_window) {
@@ -125,7 +122,7 @@ void vk::detail::VK_XCBWindow::_setup()
 
     xcb_change_property(_connection, XCB_PROP_MODE_REPLACE, _window, reply_protocols->atom, 4, 32, 1, &reply_delete->atom);
     _atom_wm_delete_window = reply_delete;
-    utils::clean(reply_protocols);
+    VK_SAFE_CLEAN(reply_protocols, memory::clean);
     xcb_map_window(_connection, _window);
 }
 
@@ -134,7 +131,7 @@ void vk::detail::VK_XCBWindow::_handle_events(xcb_generic_event_t *event)
     switch (event->response_type & ~0x80) {
 
         case XCB_BUTTON_PRESS: {
-            xcb_button_press_event_t *b = reinterpret_cast<xcb_button_press_event_t *>(event);
+            const xcb_button_press_event_t *b = reinterpret_cast<xcb_button_press_event_t *>(event);
 
             switch (b->detail) {
                 case XCB_BUTTON_INDEX_4:

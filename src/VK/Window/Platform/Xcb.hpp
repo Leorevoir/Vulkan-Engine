@@ -3,6 +3,7 @@
 #if defined(VK_USE_PLATFORM_XCB_KHR)
 
     #include <VK/Backend.hpp>
+    #include <VK/Macros.hpp>
     #include <VK/Window/Platform/Base.hpp>
 
     #define VK_XCB_EVENT_MASKS                                                                                                                                           \
@@ -13,14 +14,14 @@ namespace vk {
 
 namespace detail {
 
-class VK_XCBWindow final : public VK_BackendWindow
+class VK_HIDDEN VK_XCBWindow final : public VK_BackendWindow
 {
     public:
         VK_XCBWindow(const maths::Vector2u &size, const std::string &title);
         ~VK_XCBWindow() override;
 
         void event() override;
-        void display() override;
+        void flush() override;
 
     private:
         void _create();

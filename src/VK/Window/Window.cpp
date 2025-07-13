@@ -14,7 +14,7 @@ vk::Window::Window(const maths::Vector2u &size, const VK_UNUSED std::string &tit
     if (!VK_MATHS_NOT_NULL(size.x) && !VK_MATHS_NOT_NULL(size.y)) {
         throw vk::exception::InvalidArgument("vk::Window::Window", "Window size must be > 0");
     }
-#if defined(__linux__)
+#if defined(VK_USE_PLATFORM_XCB_KHR)
     _vk_backend = std::make_unique<detail::VK_XCBWindow>(size, title);
 #else
     throw vk::exception::NotImplemented("vk::Window::Window", "Platform not supported");
@@ -41,7 +41,7 @@ void vk::Window::pollEvents()
     _vk_backend->event();
 }
 
-void vk::Window::display()
+void vk::Window::flush()
 {
-    _vk_backend->display();
+    _vk_backend->flush();
 }
