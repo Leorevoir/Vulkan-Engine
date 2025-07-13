@@ -40,12 +40,11 @@ target_include_directories(vulkan_engine PRIVATE
     ${CMAKE_SOURCE_DIR}/include
 )
 
-if(UNIX)
+if(UNIX AND NOT APPLE)
     add_definitions(-DVK_USE_PLATFORM_XCB_KHR)
     target_link_libraries(vulkan_engine PRIVATE xcb)
-elseif(WIN32)
-    add_definitions(-DNOMINMAX)
-    add_definitions(-DVK_USE_PLATFORM_WIN32_KHR)
+# elseif(APPLE)
+# elseif(WIN32)
 endif()
 
 target_compile_options(vulkan_engine PRIVATE
