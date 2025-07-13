@@ -67,3 +67,4 @@ asm_offset
 *.glb
 
 .clang-format
+console.log
