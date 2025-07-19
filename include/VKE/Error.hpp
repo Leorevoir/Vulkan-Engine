@@ -72,4 +72,10 @@ class BadAlloc final : public Error
         __VKE_ERROR_INHERIT(BadAlloc)
 };
 
+class OutOfRange final : public Error
+{
+    public:
+        __VKE_ERROR_INHERIT(OutOfRange)
+};
+
 }// namespace vke::exception
