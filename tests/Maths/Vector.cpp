@@ -1,6 +1,6 @@
 #include <criterion/criterion.h>
 
-#include <Lib/Maths/Vector.hpp>
+#include <VKE/Maths/Vector.hpp>
 
 Test(Vector, test_maths_vector)
 {
