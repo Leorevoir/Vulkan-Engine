@@ -13,7 +13,7 @@ namespace vke {
 
 namespace detail {
 
-class VKE_HIDDEN VKE_XCBWindow final : public VKE_BackendWindow
+class VKE_API VKE_XCBWindow final : public VKE_BackendWindow
 {
     public:
         VKE_XCBWindow(const maths::Vector2u &size, const std::string &title);
