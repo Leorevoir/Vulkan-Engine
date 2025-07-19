@@ -3,9 +3,16 @@
 #include <VKE/Error.hpp>
 #include <VKE/Types.hpp>
 
+#include <cstring>
+
 namespace vke {
 
 namespace memory {
+
+static inline void copy(void *dst, const void *src, usize size)
+{
+    std::memcpy(dst, src, size);
+}
 
 template<typename Object>
 static inline Object *allocate(usize size)
