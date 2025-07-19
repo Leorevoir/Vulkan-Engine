@@ -1,0 +1,524 @@
+#include <VKE/Error.hpp>
+#include <VKE/Graphics/Engine/VulkanEngineBase.hpp>
+
+#include <chrono>
+#include <iostream>
+#include <thread>
+
+#if defined(VKE_USE_PLATFORM_XCB_KHR)
+    #include <vulkan/vulkan_xcb.h>
+#endif
+
+/**
+* public
+*/
+
+#include <iostream>
+
+vke::priv::VulkanEngineBase::VulkanEngineBase()
+{
+    _create_window();
+    std::cout << "window created" << std::endl;
+    _create_vulkan_instance();
+    std::cout << "vulkan instance created" << std::endl;
+    _get_physical_device();
+    std::cout << "physical device gefunden" << std::endl;
+}
+
+vke::priv::VulkanEngineBase::~VulkanEngineBase()
+{
+    std::cout << "destroying...!" << std::endl;
+    _destroy();
+    std::cout << "destroyed!" << std::endl;
+}
+
+void vke::priv::VulkanEngineBase::start()
+{
+    std::cout << "starting..." << std::endl;
+    _swapchain.init(*_window);
+    _create_command_pool();
+    _swapchain.create(_size, false);
+    _create_command_buffer();
+    _create_synchronization_objects();
+    _create_depth_stencil();
+    _create_render_pass();
+    _create_pipeline_cache();
+    _create_framebuffer();
+    _descriptor_set = std::make_unique<VulkanDescriptorSet>(_device);
+    _vertex_descriptor = std::make_unique<VulkanVertexDescriptor>();
+    _pipelines = std::make_unique<VulkanPipelines>(_device, _vertex_descriptor->getState(), _pipeline_cache);
+    _context = std::make_unique<VulkanContext>(_vulkan_device.get(), &_size);
+    _context->_cmd_pool = _command_pool;
+    _context->_pipeline_layout = &_pipeline_layout;
+    _context->_pipeline_cache = _pipeline_cache;
+    _context->_render_pass = _render_pass;
+    _context->_queue = _queue;
+    initialize();
+    _build_command_buffer();
+    _running = true;
+    std::cout << "started!" << std::endl;
+}
+
+void vke::priv::VulkanEngineBase::renderLoop()
+{
+    std::cout << "flushing window..." << std::endl;
+    _window->flush();
+    std::cout << "window flushed!" << std::endl;
+
+    std::cout << "starting render loop..." << std::endl;
+    while (_running) {
+
+        if (_window->shouldClose()) {
+            return stop();
+        }
+
+        renderFrame();
+
+        //TODO: real timing bc this sucks
+        std::this_thread::sleep_for(std::chrono::milliseconds(16));
+    }
+    std::cout << "render loop stopped!" << std::endl;
+}
+
+void vke::priv::VulkanEngineBase::stop()
+{
+    _running = false;
+}
+
+/**
+* protected
+*/
+
+void vke::priv::VulkanEngineBase::initialize()
+{
+    /* __initialize__ */
+}
+
+void vke::priv::VulkanEngineBase::renderFrame()
+{
+    const auto time_start = std::chrono::high_resolution_clock::now();
+
+    update();
+    render();
+
+    const auto time_end = std::chrono::high_resolution_clock::now();
+    const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(time_end - time_start).count();
+
+    _frame_time = static_cast<f32>(duration) / 1000.0f;
+}
+
+void vke::priv::VulkanEngineBase::update()
+{
+    _window->pollEvents();
+}
+
+void vke::priv::VulkanEngineBase::render()
+{
+    if (_paused) {
+        return;
+    }
+
+    _signal_frame = false;
+    _acquire_frame();
+    _submit_info.commandBufferCount = 1;
+    _submit_info.pCommandBuffers = &_command_buffer[_current_buffer];
+
+    VKE_ASSERT(vkQueueSubmit(_queue, 1, &_submit_info, VKE_NULL_PTR));
+
+    _submit_frame();
+    _signal_frame = true;
+}
+
+void vke::priv::VulkanEngineBase::waitForCurrentFrame()
+{
+    _paused = true;
+    while (!_signal_frame) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+}
+
+/**
+* private
+*/
+
+/**
+* initialization
+*/
+
+void vke::priv::VulkanEngineBase::_create_window()
+{
+    _window = std::make_unique<vke::Window>(_size, "Vulkan Engine");
+}
+
+void vke::priv::VulkanEngineBase::_create_vulkan_instance()
+{
+    VkApplicationInfo app_info = {};
+
+    app_info.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+    app_info.pApplicationName = "Vulkan Engine";
+    app_info.pEngineName = "Vulkan Engine";
+    app_info.apiVersion = VK_API_VERSION_1_0;
+
+    std::vector<const char *> instance_extensions = {VK_KHR_SURFACE_EXTENSION_NAME};
+
+#if defined(VKE_USE_PLATFORM_XCB_KHR)
+    instance_extensions.push_back(VK_KHR_XCB_SURFACE_EXTENSION_NAME);
+#else
+    #error "platform not supported yet"
+#endif
+
+    for (const auto &ext : _enabled_extensions) {
+        instance_extensions.push_back(ext);
+    }
+
+    std::vector<const char *> instance_layers;
+#ifdef ENABLE_VALIDATION_LAYERS
+    instance_layers.push_back("VK_LAYER_KHRONOS_validation");
+#endif
+
+    VkInstanceCreateInfo instance_create_info = {};
+    instance_create_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+    instance_create_info.pApplicationInfo = &app_info;
+    instance_create_info.enabledExtensionCount = static_cast<uint32_t>(instance_extensions.size());
+    instance_create_info.ppEnabledExtensionNames = instance_extensions.data();
+    instance_create_info.enabledLayerCount = static_cast<uint32_t>(instance_layers.size());
+    instance_create_info.ppEnabledLayerNames = instance_layers.data();
+
+    VKE_ASSERT(vkCreateInstance(&instance_create_info, nullptr, &_instance));
+}
+
+void vke::priv::VulkanEngineBase::_get_physical_device()
+{
+    uint32_t device_count = 0;
+
+    VKE_ASSERT(vkEnumeratePhysicalDevices(_instance, &device_count, nullptr));
+    if (device_count == 0) {
+        throw vke::exception::RuntimeError("vke::priv::VulkanEngineBase::_get_physical_device", "No Vulkan physical devices found");
+    }
+
+    std::vector<VkPhysicalDevice> devices(device_count);
+    VKE_ASSERT(vkEnumeratePhysicalDevices(_instance, &device_count, devices.data()));
+
+    _physical_device = devices[0];
+    vkGetPhysicalDeviceProperties(_physical_device, &_physical_device_properties);
+    vkGetPhysicalDeviceFeatures(_physical_device, &_physical_device_features);
+    vkGetPhysicalDeviceMemoryProperties(_physical_device, &_physical_device_memory_properties);
+
+    _vulkan_device = std::make_unique<VulkanDevice>(_physical_device);
+    _vulkan_device->createLogicalDevice(_enabled_features, _enabled_device_extensions, _device_create_next_chain);
+    _device = _vulkan_device->_logicalDevice;
+
+    vkGetDeviceQueue(_device, _vulkan_device->_queueFamilyIndices.graphics, 0, &_queue);
+
+    _depth_format = _vulkan_device->getSupportedDepthFormat();
+    _swapchain.connect(_instance, _physical_device, _device);
+
+    VkSemaphoreCreateInfo semaphore_create_info = {};
+    semaphore_create_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+    VKE_ASSERT(vkCreateSemaphore(_device, &semaphore_create_info, VKE_NULL_PTR, &_semaphores._presentation));
+    VKE_ASSERT(vkCreateSemaphore(_device, &semaphore_create_info, VKE_NULL_PTR, &_semaphores._rendering));
+
+    VkPipelineStageFlags submit_stages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+
+    _submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    _submit_info.pWaitDstStageMask = &submit_stages;
+    _submit_info.waitSemaphoreCount = 1;
+    _submit_info.pWaitSemaphores = &_semaphores._presentation;
+    _submit_info.signalSemaphoreCount = 1;
+    _submit_info.pSignalSemaphores = &_semaphores._rendering;
+}
+
+/**
+* start
+*/
+
+void vke::priv::VulkanEngineBase::_create_command_pool()
+{
+    VkCommandPoolCreateInfo command_pool_create_info = {};
+    command_pool_create_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    command_pool_create_info.queueFamilyIndex = _swapchain.getQueueNodeIndex();
+    command_pool_create_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+    VKE_ASSERT(vkCreateCommandPool(_device, &command_pool_create_info, VKE_NULL_PTR, &_command_pool));
+}
+
+void vke::priv::VulkanEngineBase::_create_command_buffer()
+{
+    const u32 image_count = _swapchain.getImageCount();
+    VkCommandBufferAllocateInfo command_buffer_allocate_info = {};
+
+    command_buffer_allocate_info.commandPool = _command_pool;
+    command_buffer_allocate_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    command_buffer_allocate_info.commandBufferCount = image_count;
+    _command_buffer.resize(image_count);
+    VKE_ASSERT(vkAllocateCommandBuffers(_device, &command_buffer_allocate_info, _command_buffer.data()));
+}
+
+void vke::priv::VulkanEngineBase::_create_synchronization_objects()
+{
+    VkFenceCreateInfo fence_create_info = {};
+
+    fence_create_info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+    fence_create_info.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+    _wait_fences.resize(_swapchain.getImageCount());
+    for (auto &fence : _wait_fences) {
+        VKE_ASSERT(vkCreateFence(_device, &fence_create_info, VKE_NULL_PTR, &fence));
+    }
+}
+
+void vke::priv::VulkanEngineBase::_create_depth_stencil()
+{
+    VkImageCreateInfo image_create_info = {};
+    image_create_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+    image_create_info.imageType = VK_IMAGE_TYPE_2D;
+    image_create_info.format = _depth_format;
+    image_create_info.extent = {_size.width, _size.height, 1};
+    image_create_info.mipLevels = 1;
+    image_create_info.arrayLayers = 1;
+    image_create_info.samples = VK_SAMPLE_COUNT_1_BIT;
+    image_create_info.tiling = VK_IMAGE_TILING_OPTIMAL;
+    image_create_info.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+
+    VKE_ASSERT(vkCreateImage(_device, &image_create_info, VKE_NULL_PTR, &_depth_stencil._image));
+
+    VkMemoryRequirements memory_requirements = {};
+    vkGetImageMemoryRequirements(_device, _depth_stencil._image, &memory_requirements);
+
+    VkMemoryAllocateInfo memory_allocate_info = {};
+    memory_allocate_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    memory_allocate_info.allocationSize = memory_requirements.size;
+    memory_allocate_info.memoryTypeIndex = _vulkan_device->getMemoryType(memory_requirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+    VKE_ASSERT(vkAllocateMemory(_device, &memory_allocate_info, VKE_NULL_PTR, &_depth_stencil._memory));
+    VKE_ASSERT(vkBindImageMemory(_device, _depth_stencil._image, _depth_stencil._memory, 0));
+
+    VkImageViewCreateInfo image_view_create_info = {};
+    image_view_create_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    image_view_create_info.image = _depth_stencil._image;
+    image_view_create_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
+    image_view_create_info.format = _depth_format;
+    image_view_create_info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+    image_view_create_info.subresourceRange.baseMipLevel = 0;
+    image_view_create_info.subresourceRange.levelCount = 1;
+    image_view_create_info.subresourceRange.baseArrayLayer = 0;
+    image_view_create_info.subresourceRange.layerCount = 1;
+    image_view_create_info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+
+    if (_depth_format >= VK_FORMAT_D16_UNORM_S8_UINT) {
+        image_view_create_info.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
+    }
+    VKE_ASSERT(vkCreateImageView(_device, &image_view_create_info, VKE_NULL_PTR, &_depth_stencil._image_view));
+}
+
+void vke::priv::VulkanEngineBase::_create_pipeline_cache()
+{
+    VkPipelineCacheCreateInfo pipeline_cache_create_info = {};
+
+    pipeline_cache_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
+    VKE_ASSERT(vkCreatePipelineCache(_device, &pipeline_cache_create_info, VKE_NULL_PTR, &_pipeline_cache));
+}
+
+void vke::priv::VulkanEngineBase::_create_render_pass()
+{
+    // clang-format off
+    const VkAttachmentDescription attachments[2] = {
+        {
+            .flags = {},
+            .format = _swapchain.color._format,
+            .samples = VK_SAMPLE_COUNT_1_BIT,
+            .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+            .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+            .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+            .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+            .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+            .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
+        },
+        {
+            .flags = {},
+            .format = _swapchain.color._format,
+            .samples = VK_SAMPLE_COUNT_1_BIT,
+            .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+            .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+            .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+            .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+            .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+            .finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+        },
+    };
+    const VkAttachmentReference color_refs = {
+        .attachment = 0,
+        .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
+    };
+    const VkAttachmentReference depth_ref = {
+        .attachment = 1,
+        .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+    };
+    const VkSubpassDescription subpass_desc = {
+        .flags = {},
+        .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
+        .inputAttachmentCount = 0,
+        .pInputAttachments = VKE_NULL_PTR,
+        .colorAttachmentCount = 1,
+        .pColorAttachments = &color_refs,
+        .pResolveAttachments = VKE_NULL_PTR,
+        .pDepthStencilAttachment = &depth_ref,
+        .preserveAttachmentCount = 0,
+        .pPreserveAttachments = VKE_NULL_PTR
+    };
+    const VkSubpassDependency subpass_dependency[2] = {
+        {
+            .srcSubpass = VK_SUBPASS_EXTERNAL,
+            .dstSubpass = 0,
+            .srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+            .dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+            .srcAccessMask = VK_ACCESS_MEMORY_READ_BIT,
+            .dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT,
+            .dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT
+        },
+        {
+            .srcSubpass = 0,
+            .dstSubpass = VK_SUBPASS_EXTERNAL,
+            .srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+            .dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+            .srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT,
+            .dstAccessMask = VK_ACCESS_MEMORY_READ_BIT,
+            .dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT
+        }
+    };
+    // clang-format on
+
+    VkRenderPassCreateInfo render_pass_create_info = {};
+    render_pass_create_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+    render_pass_create_info.attachmentCount = 2;
+    render_pass_create_info.pAttachments = attachments;
+    render_pass_create_info.subpassCount = 1;
+    render_pass_create_info.pSubpasses = &subpass_desc;
+    render_pass_create_info.dependencyCount = 2;
+    render_pass_create_info.pDependencies = subpass_dependency;
+
+    VKE_ASSERT(vkCreateRenderPass(_device, &render_pass_create_info, VKE_NULL_PTR, &_render_pass));
+}
+
+void vke::priv::VulkanEngineBase::_create_framebuffer()
+{
+    for (u32 i = 0; i < _framebuffers.size(); ++i) {
+        vkDestroyFramebuffer(_device, _framebuffers[i], nullptr);
+    }
+}
+
+void vke::priv::VulkanEngineBase::_build_command_buffer()
+{
+    VkCommandBufferBeginInfo cmd_buffer_begin_info = {};
+    cmd_buffer_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+
+    for (u32 i = 0; i < _command_buffer.size(); ++i) {
+        VKE_ASSERT(vkBeginCommandBuffer(_command_buffer[i], &cmd_buffer_begin_info));
+
+        buildCommandBufferBeforeRenderPass();
+
+        {
+            VkClearValue clear_values[2] = {};
+            clear_values[0].color = {{.1f, .2f, .3f, .1f}};
+            clear_values[1].depthStencil = {1.0f, 0};
+            VkRenderPassBeginInfo render_pass_begin_info = {};
+            render_pass_begin_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+            render_pass_begin_info.renderPass = _render_pass;
+            render_pass_begin_info.renderArea = {
+                .offset = {.x = 0, .y = 0},
+                .extent = {.width = _size.width, .height = _size.height},
+            };
+            render_pass_begin_info.clearValueCount = 2;
+            render_pass_begin_info.pClearValues = clear_values;
+            render_pass_begin_info.framebuffer = _framebuffers[i];
+
+            vkCmdBeginRenderPass(_command_buffer[i], &render_pass_begin_info, VK_SUBPASS_CONTENTS_INLINE);
+            vkCmdBindDescriptorSets(_command_buffer[i], VK_PIPELINE_BIND_POINT_GRAPHICS, _pipeline_layout, 0, 1, &(_descriptor_set->get(0)), 0, VKE_NULL_PTR);
+
+            _set_viewports(_command_buffer[i]);
+            buildObjects(_command_buffer[i]);
+
+            vkCmdEndRenderPass(_command_buffer[i]);
+        }
+
+        buildCommandBufferAfterRenderPass();
+        VKE_ASSERT(vkEndCommandBuffer(_command_buffer[i]));
+    }
+    vkQueueWaitIdle(_queue);
+}
+
+void vke::priv::VulkanEngineBase::_set_viewports(VkCommandBuffer &cmd_buffer)
+{
+    VkViewport viewports[1];
+    VkRect2D scissor_rects[1];
+
+    viewports[0] = {0, 0, static_cast<f32>(_size.width), static_cast<f32>(_size.height), .0f, 1.0f};
+    scissor_rects[0] = {.offset = {0, 0}, .extent = {_size.width, _size.height}};
+    vkCmdSetViewport(cmd_buffer, 0, 1, viewports);
+    vkCmdSetScissor(cmd_buffer, 0, 1, scissor_rects);
+}
+
+/**
+* destroy
+*/
+
+void vke::priv::VulkanEngineBase::_destroy()
+{
+    VKE_ASSERT(vkQueueWaitIdle(_queue));
+    vkDeviceWaitIdle(_device);
+    VKE_SAFE_CLEAN(_descriptor_pool, vkDestroyDescriptorPool(_device, _descriptor_pool, VKE_NULL_PTR));
+    VKE_SAFE_CLEAN(_render_pass, vkDestroyRenderPass(_device, _render_pass, VKE_NULL_PTR));
+
+    for (auto &shader : _shader_modules) {
+        VKE_SAFE_CLEAN(shader, vkDestroyShaderModule(_device, shader, VKE_NULL_PTR));
+    }
+
+    VKE_SAFE_CLEAN(_pipeline_cache, vkDestroyPipelineCache(_device, _pipeline_cache, VKE_NULL_PTR));
+
+    VKE_SAFE_CLEAN(_semaphores._presentation, vkDestroySemaphore(_device, _semaphores._presentation, VKE_NULL_PTR));
+    VKE_SAFE_CLEAN(_semaphores._rendering, vkDestroySemaphore(_device, _semaphores._rendering, VKE_NULL_PTR));
+
+    for (auto &fence : _wait_fences) {
+        VKE_SAFE_CLEAN(fence, vkDestroyFence(_device, fence, VKE_NULL_PTR));
+    }
+    _swapchain.destroy();
+    _destroy_command_buffer();
+    _destroy_surface();
+    _vulkan_device.reset();
+    VKE_SAFE_CLEAN(_instance, vkDestroyInstance(_instance, VKE_NULL_PTR));
+}
+
+void vke::priv::VulkanEngineBase::_destroy_command_buffer()
+{
+    if (_command_buffer.empty()) {
+        return;
+    }
+
+    vkFreeCommandBuffers(_device, _command_pool, static_cast<u32>(_command_buffer.size()), _command_buffer.data());
+}
+
+void vke::priv::VulkanEngineBase::_destroy_surface()
+{
+    VKE_SAFE_CLEAN(_depth_stencil._image_view, vkDestroyImageView(_device, _depth_stencil._image_view, VKE_NULL_PTR));
+    VKE_SAFE_CLEAN(_depth_stencil._image, vkDestroyImage(_device, _depth_stencil._image, VKE_NULL_PTR));
+    VKE_SAFE_CLEAN(_depth_stencil._memory, vkFreeMemory(_device, _depth_stencil._memory, VKE_NULL_PTR));
+
+    for (u32 i = 0; i < _framebuffers.size(); ++i) {
+        VKE_SAFE_CLEAN(_framebuffers[i], vkDestroyFramebuffer(_device, _framebuffers[i], VKE_NULL_PTR));
+    }
+}
+
+/**
+* draw
+*/
+
+void vke::priv::VulkanEngineBase::_acquire_frame()
+{
+    VKE_ASSERT(_swapchain.next(_semaphores._presentation, _current_buffer));
+    VKE_ASSERT(vkQueueWaitIdle(_queue));
+}
+
+void vke::priv::VulkanEngineBase::_submit_frame()
+{
+    VKE_ASSERT(_swapchain.queue(_queue, _current_buffer, _semaphores._rendering));
+    VKE_ASSERT(vkQueueWaitIdle(_queue));
+}
