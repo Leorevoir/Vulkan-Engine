@@ -30,6 +30,10 @@
     #define VKE_NODISCARD [[nodiscard]]
 #endif
 
+#ifndef VKE_FENCE_TIMEOUT
+    #define VKE_FENCE_TIMEOUT 100000000000
+#endif
+
 #ifndef VKE_UNUSED
     #define VKE_UNUSED __attribute__((unused))
 #endif
