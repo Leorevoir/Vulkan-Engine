@@ -7,7 +7,7 @@
 
 namespace vke {
 
-class VKE_HIDDEN Window final
+class VKE_API Window final
 {
 
     public:
