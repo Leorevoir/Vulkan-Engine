@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Lib/Maths/Base.hpp>
 #include <VKE/Macros.hpp>
+#include <VKE/Maths/Base.hpp>
 #include <VKE/Types.hpp>
 
 #include <cmath>
@@ -22,14 +22,14 @@ namespace detail {
 #endif
 
 template<usize N, typename T>
-struct VectorData {
+struct VKEM_API VectorData {
 
         /* __data__ */
         T _data[N] = {0};
 };
 
 template<typename T>
-struct VectorData<2, T> {
+struct VKEM_API VectorData<2, T> {
 
         union {
                 struct {
@@ -49,7 +49,7 @@ struct VectorData<2, T> {
 };
 
 template<typename T>
-struct VectorData<3, T> {
+struct VKEM_API VectorData<3, T> {
 
         union {
                 struct {
@@ -66,7 +66,7 @@ struct VectorData<3, T> {
 };
 
 template<typename T>
-struct VectorData<4, T> {
+struct VKEM_API VectorData<4, T> {
 
         union {
                 struct {
@@ -91,7 +91,7 @@ struct VectorData<4, T> {
 template<usize N, typename T>
     requires(VKE_MATHS_NOT_NULL(N) && VKE_MATHS_ASSERT_NUMBERS(T))
 
-VKEM_API struct Vector : public detail::VectorData<N, T> {
+struct VKEM_API Vector : public detail::VectorData<N, T> {
 
         VKE_MATHS_ASSERT_VECTOR_SIZE(N)
 
