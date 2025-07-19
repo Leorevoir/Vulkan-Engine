@@ -6,9 +6,7 @@
 
 namespace vke {
 
-namespace priv {
-
-struct VKE_HIDDEN Buffer final {
+struct VKE_API VulkanBuffer final {
 
     public:
         VkDevice _device;
@@ -35,6 +33,29 @@ struct VKE_HIDDEN Buffer final {
         void destroy();
 };
 
-}// namespace priv
+namespace helper {
+
+static inline VkBufferCreateInfo create_buffer_info(VkBufferUsageFlags usage_flags, VkDeviceSize size)
+{
+    VkBufferCreateInfo buffer_create_info{};
+
+    buffer_create_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    buffer_create_info.usage = usage_flags;
+    buffer_create_info.size = size;
+    return buffer_create_info;
+}
+
+static inline VkCommandBufferAllocateInfo allocate_command_buffer(VkCommandPool command_pool, VkCommandBufferLevel level, u32 buffer_count)
+{
+    VkCommandBufferAllocateInfo alloc_info{};
+
+    alloc_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    alloc_info.commandPool = command_pool;
+    alloc_info.level = level;
+    alloc_info.commandBufferCount = buffer_count;
+    return alloc_info;
+}
+
+}// namespace helper
 
 }// namespace vke
