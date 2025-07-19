@@ -1,9 +1,8 @@
 #pragma once
 
-#include <Lib/Maths/Vector.hpp>
-
 #include <VKE/Backend.hpp>
 #include <VKE/Macros.hpp>
+#include <VKE/Maths/Vector.hpp>
 #include <VKE/Types.hpp>
 #include <VKE/Window/Window.hpp>
 
@@ -11,17 +10,17 @@ namespace vke {
 
 namespace priv {
 
-struct VKE_HIDDEN SwapchainBuffers {
+struct VKE_API SwapchainBuffers {
         VkImage _image;
         VkImageView _view;
 };
 
-struct VKE_HIDDEN SwapChainColor {
+struct VKE_API SwapChainColor {
         VkFormat _format;
         VkColorSpaceKHR _space;
 };
 
-class VKE_HIDDEN Swapchain final : public NonMovable
+class VKE_API VulkanSwapchain final : public NonMovable
 {
     public:
         void init(Window &window);
@@ -33,7 +32,11 @@ class VKE_HIDDEN Swapchain final : public NonMovable
 
         void destroy();
 
+        u32 getQueueNodeIndex() const;
+        u32 getImageCount() const;
+
         SwapChainColor color;
+        std::vector<SwapchainBuffers> _buffers;
 
     private:
         u32 _queue_index = 0;
@@ -47,7 +50,6 @@ class VKE_HIDDEN Swapchain final : public NonMovable
         VkSwapchainKHR _swapchain = VKE_NULL_PTR;
 
         std::vector<VkImage> _images;
-        std::vector<SwapchainBuffers> _buffers;
 
         PFN_vkQueuePresentKHR _QueuePresentKHR;
         PFN_vkCreateSwapchainKHR _CreateSwapchainKHR;

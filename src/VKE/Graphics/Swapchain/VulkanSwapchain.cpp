@@ -30,7 +30,7 @@
 * public
 */
 
-void vke::priv::Swapchain::init(Window &window)
+void vke::priv::VulkanSwapchain::init(Window &window)
 {
     u32 queue_count;
 
@@ -85,11 +85,11 @@ void vke::priv::Swapchain::init(Window &window)
     }
 
     if (graphics_queue_index == UINT32_MAX || presenting_queue_index == UINT32_MAX) {
-        throw exception::RuntimeError("vke::priv::Swapchain::init", "No suitable queue family found for graphics and/or presenting.");
+        throw exception::RuntimeError("vke::priv::VulkanSwapchain::init", "No suitable queue family found for graphics and/or presenting.");
     }
 
     if (graphics_queue_index != presenting_queue_index) {
-        throw exception::RuntimeError("vke::priv::Swapchain::init", "Graphics and presenting queue families must be the same.");
+        throw exception::RuntimeError("vke::priv::VulkanSwapchain::init", "Graphics and presenting queue families must be the same.");
     }
 
     _queue_index = graphics_queue_index;
@@ -120,7 +120,7 @@ void vke::priv::Swapchain::init(Window &window)
     color._space = surface_formats[0].colorSpace;
 }
 
-void vke::priv::Swapchain::connect(VkInstance instance, VkPhysicalDevice physical_device, VkDevice device)
+void vke::priv::VulkanSwapchain::connect(VkInstance instance, VkPhysicalDevice physical_device, VkDevice device)
 {
     _instance = instance;
     _physical_device = physical_device;
@@ -137,7 +137,7 @@ void vke::priv::Swapchain::connect(VkInstance instance, VkPhysicalDevice physica
     GET_DEVICE_PROC_ADDR(_device, QueuePresentKHR);
 }
 
-void vke::priv::Swapchain::create(vke::maths::Vector2u &size, bool vsync)
+void vke::priv::VulkanSwapchain::create(vke::maths::Vector2u &size, bool vsync)
 {
     VkSwapchainKHR old_swapchain = _swapchain;
     VkSurfaceCapabilitiesKHR surface_capabilities;
@@ -293,7 +293,7 @@ void vke::priv::Swapchain::create(vke::maths::Vector2u &size, bool vsync)
     }
 }
 
-VkResult vke::priv::Swapchain::next(VkSemaphore present_semaphore, u32 &image_index)
+VkResult vke::priv::VulkanSwapchain::next(VkSemaphore present_semaphore, u32 &image_index)
 {
     if (_swapchain) {
         return _AcquireNextImageKHR(_device, _swapchain, UINT64_MAX, present_semaphore, VK_NULL_HANDLE, &image_index);
@@ -301,7 +301,7 @@ VkResult vke::priv::Swapchain::next(VkSemaphore present_semaphore, u32 &image_in
     return VKE_SUCCESS;
 }
 
-VkResult vke::priv::Swapchain::queue(VkQueue queue, u32 image_index, VkSemaphore wait_semaphore)
+VkResult vke::priv::VulkanSwapchain::queue(VkQueue queue, u32 image_index, VkSemaphore wait_semaphore)
 {
     VkPresentInfoKHR present_info = {};
 
@@ -323,7 +323,7 @@ VkResult vke::priv::Swapchain::queue(VkQueue queue, u32 image_index, VkSemaphore
     return VKE_SUCCESS;
 }
 
-void vke::priv::Swapchain::destroy()
+void vke::priv::VulkanSwapchain::destroy()
 {
     _destroy_buffer();
     if (_swapchain) {
@@ -336,11 +336,21 @@ void vke::priv::Swapchain::destroy()
     }
 }
 
+u32 vke::priv::VulkanSwapchain::getQueueNodeIndex() const
+{
+    return _queue_index;
+}
+
+u32 vke::priv::VulkanSwapchain::getImageCount() const
+{
+    return _image_count;
+}
+
 /**
 * private
 */
 
-void vke::priv::Swapchain::_destroy_buffer()
+void vke::priv::VulkanSwapchain::_destroy_buffer()
 {
     for (u32 i = 0; i < _buffers.size(); ++i) {
         //TODO: use VKE_SAFE_CLEAN macro
