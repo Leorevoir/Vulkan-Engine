@@ -6,14 +6,14 @@
 
 #define VKE_FORCE_CLEAR_COLOR 0x00aade87
 
-#include <Lib/Maths/Vector.hpp>
 #include <VKE/Backend.hpp>
+#include <VKE/Maths/Vector.hpp>
 
 namespace vke {
 
 namespace detail {
 
-class VKE_HIDDEN VKE_BackendWindow
+class VKE_API VKE_BackendWindow
 {
     public:
         VKE_INLINE constexpr VKE_BackendWindow(const maths::Vector2u &size, const std::string &title) : _size(size), _title(title)
