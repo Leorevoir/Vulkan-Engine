@@ -20,7 +20,7 @@ static inline Object *allocate(usize size)
     Object *ptr = new Object[size];
 
     if (!ptr) {
-        throw exception::BadAlloc("vk::memory::allocate", "Failed to allocate memory");
+        throw exception::BadAlloc("vk::memory::allocate", "Failed to allocate memory file: ", __FILE__, " line: ", __LINE__);
     }
     return ptr;
 }
@@ -31,7 +31,7 @@ static inline Object *allocate(Args &&...args)
     Object *ptr = new Object(std::forward<Args>(args)...);
 
     if (!ptr) {
-        throw exception::BadAlloc("vk::memory::allocate", "Failed to allocate memory");
+        throw exception::BadAlloc("vk::memory::allocate", "Failed to allocate memory file: ", __FILE__, " line: ", __LINE__);
     }
     return ptr;
 }
