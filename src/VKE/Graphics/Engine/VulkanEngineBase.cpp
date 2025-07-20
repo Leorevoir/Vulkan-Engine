@@ -9,28 +9,20 @@
 * public
 */
 
-#include <iostream>
-
 vke::priv::VulkanEngineBase::VulkanEngineBase()
 {
     _create_window();
-    std::cout << "window created" << std::endl;
     _create_vulkan_instance();
-    std::cout << "vulkan instance created" << std::endl;
     _get_physical_device();
-    std::cout << "physical device gefunden" << std::endl;
 }
 
 vke::priv::VulkanEngineBase::~VulkanEngineBase()
 {
-    std::cout << "destroying...!" << std::endl;
     _destroy();
-    std::cout << "destroyed!" << std::endl;
 }
 
 void vke::priv::VulkanEngineBase::start()
 {
-    std::cout << "parent!!!" << std::endl;
     _swapchain.init(_window);
     _create_command_pool();
     _swapchain.create(_size, false);
@@ -54,11 +46,6 @@ void vke::priv::VulkanEngineBase::start()
 /**
 * protected
 */
-
-void vke::priv::VulkanEngineBase::initialize()
-{
-    /* __initialize__ */
-}
 
 void vke::priv::VulkanEngineBase::renderFrame()
 {

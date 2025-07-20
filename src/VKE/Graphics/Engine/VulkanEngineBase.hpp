@@ -30,13 +30,22 @@ class VKE_API VulkanEngineBase : public VulkanEngineInterface
         bool _prepared = false;
         bool _paused = false;
         f32 _frame_time = 0.0f;
+
         maths::Vector2u _size = {800, 600};
+
+        //TODO: better way to handle this
+        VkPipelineLayout _pipeline_layout = VKE_NULLPTR;
+        VkRenderPass _render_pass = VKE_NULLPTR;
+
         std::shared_ptr<Window> _window;
         std::unique_ptr<VulkanPipelines> _pipelines;
 
+        std::shared_ptr<VulkanContext> _context;
+        std::unique_ptr<VulkanDescriptorSet> _descriptor_set;
+        std::unique_ptr<VulkanVertexDescriptor> _vertex_descriptor;
+
         void renderFrame();
 
-        void initialize() override;
         void render() override;
 
         virtual void drawObjects(VkCommandBuffer VKE_UNUSED &cmd) {};
@@ -85,16 +94,10 @@ class VKE_API VulkanEngineBase : public VulkanEngineInterface
         VulkanSwapchain _swapchain;
         VkFormat _depth_format = VK_FORMAT_D16_UNORM_S8_UINT;
         VkSubmitInfo _submit_info = {};
-        VkRenderPass _render_pass = VKE_NULLPTR;
         VkCommandPool _command_pool = VKE_NULLPTR;
         VkPipelineCache _pipeline_cache = VKE_NULLPTR;
-        VkPipelineLayout _pipeline_layout = VKE_NULLPTR;
         VkDescriptorPool _descriptor_pool = VKE_NULLPTR;
         VkPipelineStageFlags _submit_stages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-
-        std::shared_ptr<VulkanContext> _context;
-        std::unique_ptr<VulkanDescriptorSet> _descriptor_set;
-        std::unique_ptr<VulkanVertexDescriptor> _vertex_descriptor;
 
         std::vector<VkCommandBuffer> _command_buffer;
         std::vector<VkShaderModule> _shader_modules;

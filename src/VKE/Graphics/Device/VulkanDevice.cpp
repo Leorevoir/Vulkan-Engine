@@ -196,7 +196,7 @@ VkResult vke::priv::VulkanDevice::createLogicalDevice(VkPhysicalDeviceFeatures e
 }
 
 VkResult vke::priv::VulkanDevice::createBuffer(VkBufferUsageFlags usage_flags, VkMemoryPropertyFlags memory_property_flags, VkDeviceSize size, VkBuffer *buffer,
-    VkDeviceMemory *memory, void *data)
+    VkDeviceMemory *memory, const void *data)
 {
     VkBufferCreateInfo buffer_create_info = helper::create_buffer_info(usage_flags, size);
 
@@ -236,7 +236,7 @@ VkResult vke::priv::VulkanDevice::createBuffer(VkBufferUsageFlags usage_flags, V
 }
 
 VkResult vke::priv::VulkanDevice::createBuffer(VkBufferUsageFlags usage_flags, VkMemoryPropertyFlags memory_property_flags, VulkanBuffer *buffer, VkDeviceSize size,
-    void *data)
+    const void *data)
 {
     buffer->_device = _logicalDevice;
 
