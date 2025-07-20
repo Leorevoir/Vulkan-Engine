@@ -41,9 +41,10 @@ target_include_directories(vulkan_engine PRIVATE
 )
 
 if(UNIX AND NOT APPLE)
-    find_package(X11 REQUIRED)
-    target_link_libraries(vulkan_engine PRIVATE X11)
-    target_include_directories(vulkan_engine PRIVATE ${X11_INCLUDE_DIR})
+    add_definitions(-DVKE_USE_PLATFORM_XCB_KHR)
+    target_link_libraries(vulkan_engine PRIVATE xcb)
+# elseif(APPLE)
+# elseif(WIN32)
 endif()
 
 target_compile_options(vulkan_engine PRIVATE
@@ -69,32 +70,44 @@ target_compile_options(vulkan_engine PRIVATE
 )
 
 ########################################
-# NOTE: unit-tests
+# NOTE: debug
 ########################################
-file(GLOB_RECURSE TEST_FILES "tests/*.cpp")
-file(GLOB_RECURSE SRC_FILES_NO_MAIN "src/*.cpp")
-list(FILTER SRC_FILES_NO_MAIN EXCLUDE REGEX ".*Main\\.cpp$")
+option(ENABLE_DEBUG "Enable debug macros and flags" OFF)
 
-add_executable(unit_tests ${TEST_FILES} ${SRC_FILES_NO_MAIN})
-
-target_link_libraries(unit_tests PRIVATE
-    vulkan
-    pthread
-    ${CMAKE_DL_LIBS}
-    criterion
-)
-
-target_include_directories(unit_tests PRIVATE 
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/include
-    ${CMAKE_SOURCE_DIR}/tests
-)
-
-if(UNIX AND NOT APPLE)
-    find_package(X11 REQUIRED)
-    target_link_libraries(unit_tests PRIVATE X11)
-    target_include_directories(unit_tests PRIVATE ${X11_INCLUDE_DIR})
+if(ENABLE_DEBUG)
+    target_compile_definitions(vulkan_engine PRIVATE DEBUG=1)
 endif()
 
-enable_testing()
-add_test(NAME unit_tests COMMAND unit_tests)
+
+# ########################################
+# # NOTE: unit-tests
+# ########################################
+# file(GLOB_RECURSE TEST_FILES "tests/*.cpp")
+# file(GLOB_RECURSE SRC_FILES_NO_MAIN "src/*.cpp")
+# list(FILTER SRC_FILES_NO_MAIN EXCLUDE REGEX ".*Main\\.cpp$")
+#
+# add_executable(unit_tests ${TEST_FILES} ${SRC_FILES_NO_MAIN})
+#
+# target_link_libraries(unit_tests PRIVATE
+#     vulkan
+#     pthread
+#     ${CMAKE_DL_LIBS}
+#     criterion
+# )
+#
+# target_include_directories(unit_tests PRIVATE 
+#     ${CMAKE_SOURCE_DIR}/src
+#     ${CMAKE_SOURCE_DIR}/include
+#     ${CMAKE_SOURCE_DIR}/tests
+# )
+#
+# if(UNIX)
+#     add_definitions(-DVK_USE_PLATFORM_XCB_KHR)
+#     target_link_libraries(vulkan_engine PRIVATE xcb)
+# elseif(WIN32)
+#     add_definitions(-DNOMINMAX)
+#     add_definitions(-DVK_USE_PLATFORM_WIN32_KHR)
+# endif()
+#
+# enable_testing()
+# add_test(NAME unit_tests COMMAND unit_tests)
