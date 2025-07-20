@@ -253,12 +253,16 @@ void vke::priv::VulkanEngineBase::_create_command_pool()
 void vke::priv::VulkanEngineBase::_create_command_buffer()
 {
     const u32 image_count = _swapchain.getImageCount();
+
+    _command_buffer.resize(image_count);
+
     VkCommandBufferAllocateInfo command_buffer_allocate_info = {};
 
+    command_buffer_allocate_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     command_buffer_allocate_info.commandPool = _command_pool;
     command_buffer_allocate_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    command_buffer_allocate_info.commandBufferCount = image_count;
-    _command_buffer.resize(image_count);
+    command_buffer_allocate_info.commandBufferCount = static_cast<u32>(_command_buffer.size());
+
     VKE_ASSERT(vkAllocateCommandBuffers(_device, &command_buffer_allocate_info, _command_buffer.data()));
 }
 
@@ -344,7 +348,7 @@ void vke::priv::VulkanEngineBase::_create_render_pass()
         },
         {
             .flags = {},
-            .format = sc_color._format,
+            .format = _depth_format,
             .samples = VK_SAMPLE_COUNT_1_BIT,
             .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
             .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
