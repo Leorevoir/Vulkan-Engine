@@ -51,17 +51,22 @@ void vke::detail::VKE_XCBWindow::flush()
     xcb_flush(_connection);
 }
 
+const char *vke::detail::VKE_XCBWindow::getVulkanExtension() const
+{
+    return VK_KHR_XCB_SURFACE_EXTENSION_NAME;
+}
+
 void vke::detail::VKE_XCBWindow::createVulkanSurface(VkInstance instance, VkSurfaceKHR &out_surface)
 {
     VkXcbSurfaceCreateInfoKHR surface_info = {
         .sType = VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR,
-        .pNext = VKE_NULL_PTR,
+        .pNext = VKE_NULLPTR,
         .flags = 0,
         .connection = _connection,
         .window = _window,
     };
 
-    VKE_ASSERT(vkCreateXcbSurfaceKHR(instance, &surface_info, VKE_NULL_PTR, &out_surface));
+    VKE_ASSERT(vkCreateXcbSurfaceKHR(instance, &surface_info, VKE_NULLPTR, &out_surface));
 }
 
 /**

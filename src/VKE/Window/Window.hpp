@@ -16,6 +16,7 @@ class VKE_API Window final
 
         void createVulkanSurface(VkInstance instance, VkSurfaceKHR &out_surface);
 
+        VKE_NODISCARD const char *getVulkanExtension() const;
         VKE_NODISCARD bool shouldClose() const;
         VKE_NODISCARD const maths::Vector2u &getSize() const;
         VKE_NODISCARD const std::string &getTitle() const;

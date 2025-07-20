@@ -6,6 +6,10 @@
 
 #define VKE_FORCE_CLEAR_COLOR 0x00aade87
 
+#ifndef VKE_WINDOW_HEADERS
+    #define VKE_WINDOW_HEADERS
+#endif
+
 #include <VKE/Backend.hpp>
 #include <VKE/Maths/Vector.hpp>
 
@@ -29,6 +33,7 @@ class VKE_API VKE_BackendWindow
 
         virtual void event() = 0;
         virtual void flush() = 0;
+        virtual const char *getVulkanExtension() const = 0;
         virtual void createVulkanSurface(VkInstance instance, VkSurfaceKHR &out_surface) = 0;
 };
 
