@@ -56,6 +56,7 @@ void vke::priv::VulkanEngineBase::start()
     _context->_queue = _queue;
     initialize();
     _build_command_buffer();
+    _prepared = true;
     _running = true;
     std::cout << "started!" << std::endl;
 }
@@ -97,6 +98,10 @@ void vke::priv::VulkanEngineBase::initialize()
 
 void vke::priv::VulkanEngineBase::renderFrame()
 {
+    if (_paused || !_prepared) {
+        return;
+    }
+
     const auto time_start = std::chrono::high_resolution_clock::now();
 
     update();
@@ -124,7 +129,9 @@ void vke::priv::VulkanEngineBase::render()
     _submit_info.commandBufferCount = 1;
     _submit_info.pCommandBuffers = &_command_buffer[_current_buffer];
 
-    VKE_ASSERT(vkQueueSubmit(_queue, 1, &_submit_info, VKE_NULL_PTR));
+    if (_prepared) {
+        VKE_ASSERT(vkQueueSubmit(_queue, 1, &_submit_info, VKE_NULL_PTR));
+    }
 
     _submit_frame();
     _signal_frame = true;
@@ -521,6 +528,10 @@ void vke::priv::VulkanEngineBase::_destroy_command_buffer()
 
 void vke::priv::VulkanEngineBase::_destroy_surface()
 {
+    if (!_prepared) {
+        return;
+    }
+
     VKE_SAFE_CLEAN(_depth_stencil._image_view, vkDestroyImageView(_device, _depth_stencil._image_view, VKE_NULL_PTR));
     VKE_SAFE_CLEAN(_depth_stencil._image, vkDestroyImage(_device, _depth_stencil._image, VKE_NULL_PTR));
     VKE_SAFE_CLEAN(_depth_stencil._memory, vkFreeMemory(_device, _depth_stencil._memory, VKE_NULL_PTR));
@@ -528,6 +539,8 @@ void vke::priv::VulkanEngineBase::_destroy_surface()
     for (u32 i = 0; i < _framebuffers.size(); ++i) {
         VKE_SAFE_CLEAN(_framebuffers[i], vkDestroyFramebuffer(_device, _framebuffers[i], VKE_NULL_PTR));
     }
+
+    _prepared = false;
 }
 
 /**
@@ -536,7 +549,11 @@ void vke::priv::VulkanEngineBase::_destroy_surface()
 
 void vke::priv::VulkanEngineBase::_resize_window()
 {
-    _paused = true;
+    if (!_prepared) {
+        return;
+    }
+
+    _prepared = false;
     vkDeviceWaitIdle(_device);
     _swapchain.create(_size, false);
     vkDestroyImageView(_device, _depth_stencil._image_view, VKE_NULL_PTR);
@@ -548,11 +565,15 @@ void vke::priv::VulkanEngineBase::_resize_window()
     _create_command_buffer();
     _build_command_buffer();
     vkDeviceWaitIdle(_device);
-    _paused = false;
+    _prepared = true;
 }
 
 void vke::priv::VulkanEngineBase::_acquire_frame()
 {
+    if (_paused || !_prepared) {
+        return;
+    }
+
     const auto error = _swapchain.next(_semaphores._presentation, _current_buffer);
 
     if (error == VK_SUBOPTIMAL_KHR || error == VK_ERROR_OUT_OF_DATE_KHR) {
@@ -567,6 +588,10 @@ void vke::priv::VulkanEngineBase::_acquire_frame()
 
 void vke::priv::VulkanEngineBase::_submit_frame()
 {
+    if (_paused) {
+        return;
+    }
+
     const auto error = _swapchain.queue(_queue, _current_buffer, _semaphores._rendering);
 
     if (error == VK_SUBOPTIMAL_KHR || error == VK_ERROR_OUT_OF_DATE_KHR) {

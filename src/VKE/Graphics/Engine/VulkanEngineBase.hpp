@@ -29,6 +29,7 @@ class VKE_API VulkanEngineBase : public VulkanEngineInterface
 
     protected:
         bool _running = false;
+        bool _prepared = false;
         bool _paused = false;
         f32 _frame_time = 0.0f;
         maths::Vector2u _size = {800, 600};
