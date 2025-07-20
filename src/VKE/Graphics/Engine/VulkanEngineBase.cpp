@@ -404,7 +404,7 @@ void vke::priv::VulkanEngineBase::_create_render_pass()
 void vke::priv::VulkanEngineBase::_create_framebuffer()
 {
     for (u32 i = 0; i < _framebuffers.size(); ++i) {
-        vkDestroyFramebuffer(_device, _framebuffers[i], nullptr);
+        vkDestroyFramebuffer(_device, _framebuffers[i], VKE_NULL_PTR);
     }
 
     VkImageView attachments[2];
@@ -534,14 +534,47 @@ void vke::priv::VulkanEngineBase::_destroy_surface()
 * draw
 */
 
+void vke::priv::VulkanEngineBase::_resize_window()
+{
+    _paused = true;
+    vkDeviceWaitIdle(_device);
+    _swapchain.create(_size, false);
+    vkDestroyImageView(_device, _depth_stencil._image_view, VKE_NULL_PTR);
+    vkDestroyImage(_device, _depth_stencil._image, VKE_NULL_PTR);
+    vkFreeMemory(_device, _depth_stencil._memory, VKE_NULL_PTR);
+    _create_depth_stencil();
+    _create_framebuffer();
+    _destroy_command_buffer();
+    _create_command_buffer();
+    _build_command_buffer();
+    vkDeviceWaitIdle(_device);
+    _paused = false;
+}
+
 void vke::priv::VulkanEngineBase::_acquire_frame()
 {
-    VKE_ASSERT(_swapchain.next(_semaphores._presentation, _current_buffer));
+    const auto error = _swapchain.next(_semaphores._presentation, _current_buffer);
+
+    if (error == VK_SUBOPTIMAL_KHR || error == VK_ERROR_OUT_OF_DATE_KHR) {
+        std::cout << "VulkanEngineBase::_acquire_frame: Swapchain out of date or suboptimal, resizing window..." << std::endl;
+        _resize_window();
+        return;
+    } else if (error != VK_SUCCESS) {
+        throw vke::exception::RuntimeError("Vulkan fatal error", VKE_GET_ERROR_STRING(error), " file: ", __FILE__, ", line: ", __LINE__);
+    }
     VKE_ASSERT(vkQueueWaitIdle(_queue));
 }
 
 void vke::priv::VulkanEngineBase::_submit_frame()
 {
-    VKE_ASSERT(_swapchain.queue(_queue, _current_buffer, _semaphores._rendering));
+    const auto error = _swapchain.queue(_queue, _current_buffer, _semaphores._rendering);
+
+    if (error == VK_SUBOPTIMAL_KHR || error == VK_ERROR_OUT_OF_DATE_KHR) {
+        std::cout << "VulkanEngineBase::_submit_frame: Swapchain out of date or suboptimal, resizing window..." << std::endl;
+        _resize_window();
+        return;
+    } else if (error != VK_SUCCESS) {
+        throw vke::exception::RuntimeError("Vulkan fatal error", VKE_GET_ERROR_STRING(error), " file: ", __FILE__, ", line: ", __LINE__);
+    }
     VKE_ASSERT(vkQueueWaitIdle(_queue));
 }

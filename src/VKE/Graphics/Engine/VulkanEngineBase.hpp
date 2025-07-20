@@ -117,6 +117,7 @@ class VKE_API VulkanEngineBase : public VulkanEngineInterface
         /** draw */
         void _acquire_frame();
         void _submit_frame();
+        void _resize_window();
 
         /** build command */
         void _build_command_buffer();
