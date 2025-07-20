@@ -41,7 +41,7 @@ class VKE_API VulkanEngineBase : public VulkanEngineInterface
         void update() override;
         void render() override;
 
-        virtual void buildObjects(VkCommandBuffer VKE_UNUSED &cmd) {};
+        virtual void drawObjects(VkCommandBuffer VKE_UNUSED &cmd) {};
         virtual void buildCommandBufferBeforeRenderPass() {};
         virtual void buildCommandBufferAfterRenderPass() {};
 

@@ -4,6 +4,7 @@
 #include <chrono>
 #include <iostream>
 #include <thread>
+#include <vulkan/vulkan_core.h>
 
 #if defined(VKE_USE_PLATFORM_XCB_KHR)
     #include <vulkan/vulkan_xcb.h>
@@ -321,10 +322,11 @@ void vke::priv::VulkanEngineBase::_create_pipeline_cache()
 void vke::priv::VulkanEngineBase::_create_render_pass()
 {
     // clang-format off
+    auto &sc_color = _swapchain.getColor();
     const VkAttachmentDescription attachments[2] = {
         {
             .flags = {},
-            .format = _swapchain.color._format,
+            .format = sc_color._format,
             .samples = VK_SAMPLE_COUNT_1_BIT,
             .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
             .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
@@ -335,7 +337,7 @@ void vke::priv::VulkanEngineBase::_create_render_pass()
         },
         {
             .flags = {},
-            .format = _swapchain.color._format,
+            .format = sc_color._format,
             .samples = VK_SAMPLE_COUNT_1_BIT,
             .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
             .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
@@ -404,6 +406,27 @@ void vke::priv::VulkanEngineBase::_create_framebuffer()
     for (u32 i = 0; i < _framebuffers.size(); ++i) {
         vkDestroyFramebuffer(_device, _framebuffers[i], nullptr);
     }
+
+    VkImageView attachments[2];
+    attachments[1] = _depth_stencil._image_view;
+
+    VkFramebufferCreateInfo framebuffer_create_info = {
+        .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+        .pNext = VKE_NULL_PTR,
+        .flags = {},
+        .renderPass = _render_pass,
+        .attachmentCount = 2,
+        .pAttachments = attachments,
+        .width = _size.width,
+        .height = _size.height,
+        .layers = 1,
+    };
+
+    _framebuffers.resize(_swapchain.getImageCount());
+    for (u32 i = 0; i < _framebuffers.size(); ++i) {
+        attachments[0] = _swapchain.getBuffers()[i]._view;
+        VKE_ASSERT(vkCreateFramebuffer(_device, &framebuffer_create_info, VKE_NULL_PTR, &_framebuffers[i]));
+    }
 }
 
 void vke::priv::VulkanEngineBase::_build_command_buffer()
@@ -435,7 +458,7 @@ void vke::priv::VulkanEngineBase::_build_command_buffer()
             vkCmdBindDescriptorSets(_command_buffer[i], VK_PIPELINE_BIND_POINT_GRAPHICS, _pipeline_layout, 0, 1, &(_descriptor_set->get(0)), 0, VKE_NULL_PTR);
 
             _set_viewports(_command_buffer[i]);
-            buildObjects(_command_buffer[i]);
+            drawObjects(_command_buffer[i]);
 
             vkCmdEndRenderPass(_command_buffer[i]);
         }
