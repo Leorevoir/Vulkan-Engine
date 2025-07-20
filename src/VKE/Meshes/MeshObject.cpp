@@ -11,7 +11,7 @@ vke::MeshObject::~MeshObject()
     _index_buffer.destroy();
 }
 
-void vke::MeshObject::build(VkCommandBuffer &cmd_buffer, VulkanShader *vulkan_shader)
+void vke::MeshObject::bind(VkCommandBuffer &cmd_buffer, VulkanShader *vulkan_shader)
 {
     VkDeviceSize offsets[1] = {0};
     auto &pipeline = vulkan_shader->getPipeline();

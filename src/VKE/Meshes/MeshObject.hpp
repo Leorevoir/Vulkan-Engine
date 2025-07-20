@@ -17,10 +17,9 @@ class VKE_API MeshObject : public VulkanObject
         virtual ~MeshObject();
 
         /** after vulkan */
-        void build(VkCommandBuffer &cmd_buffer, VulkanShader *vulkan_shader);
-
-        virtual void generate() = 0;
-        void update() = 0;
+        /* + initialize() */
+        /* + update() */
+        void bind(VkCommandBuffer &cmd_buffer, VulkanShader *vulkan_shader);
 
         /** getters */
         const maths::Vector3f &getPosition() const;
