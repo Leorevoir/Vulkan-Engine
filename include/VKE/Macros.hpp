@@ -13,6 +13,14 @@
 #define VKE_HIDDEN __attribute__((visibility("hidden")))
 
 /**
+ * NOTE: if you want to change the default path, you can define VKE_DEFAULT_PATH
+ */
+
+#ifndef VKE_DEFAULT_PATH
+    #define VKE_DEFAULT_PATH ""
+#endif
+
+/**
  * NOTE: if you want to force NO inline, you can define VKE_FORCE_NO_INLINE
  */
 
