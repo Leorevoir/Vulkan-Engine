@@ -1,10 +1,7 @@
 #pragma once
 
-#include <VKE/Types.hpp>
-
 #include <exception>
 #include <sstream>
-#include <string>
 
 #define __VKE_ERROR_INHERIT(N)                                                                                                                                           \
     template<typename... Args>                                                                                                                                           \
