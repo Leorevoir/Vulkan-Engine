@@ -99,7 +99,7 @@ void vke::priv::VulkanPipelines::create(VulkanShader *shader, VkPolygonMode poly
 {
     auto &shader_pipeline = shader->getPipeline();
 
-    VKE_SAFE_CLEAN(shader_pipeline, vkDestroyPipeline(_device, shader_pipeline, VKE_NULL_PTR));
+    VKE_SAFE_CLEAN(shader_pipeline, vkDestroyPipeline(_device, shader_pipeline, VKE_NULLPTR));
 
     _rasterization_state.polygonMode = polygon_mode;
     _rasterization_state.cullMode = shader->getCullMode();
@@ -126,7 +126,7 @@ void vke::priv::VulkanPipelines::create(VulkanShader *shader, VkPolygonMode poly
         _input_state = shader->getVertexInputState();
     }
 
-    VKE_ASSERT(vkCreateGraphicsPipelines(_device, _pipeline_cache, 1, &_pipeline_info, VKE_NULL_PTR, &shader_pipeline));
+    VKE_ASSERT(vkCreateGraphicsPipelines(_device, _pipeline_cache, 1, &_pipeline_info, VKE_NULLPTR, &shader_pipeline));
 }
 
 void vke::priv::VulkanPipelines::create(VulkanShader *shader, VkRenderPass render_pass, VkPolygonMode polygon_mode)

@@ -12,14 +12,14 @@ struct VKE_API VulkanBuffer final {
         VkDevice _device;
         VkDeviceSize _size = 0;
         VkDeviceSize _alignment = 0;
-        VkBuffer _buffer = VKE_NULL_PTR;
-        VkDeviceMemory _memory = VKE_NULL_PTR;
+        VkBuffer _buffer = VKE_NULLPTR;
+        VkDeviceMemory _memory = VKE_NULLPTR;
         VkDescriptorBufferInfo _descriptorInfo;
 
         VkBufferUsageFlags _usageFlags = 0;
         VkMemoryPropertyFlags _memoryPropertyFlags = 0;
 
-        void *_mapped = VKE_NULL_PTR;
+        void *_mapped = VKE_NULLPTR;
 
         VkResult map(VkDeviceSize size = VK_WHOLE_SIZE, VkDeviceSize offset = 0);
         void unmap();

@@ -14,10 +14,10 @@ vke::VulkanShader::VulkanShader(VulkanContext *context) : VulkanObject(context)
 
 vke::VulkanShader::~VulkanShader()
 {
-    VKE_SAFE_CLEAN(_pipeline, vkDestroyPipeline(_context->getDevice(), _pipeline, VKE_NULL_PTR));
+    VKE_SAFE_CLEAN(_pipeline, vkDestroyPipeline(_context->getDevice(), _pipeline, VKE_NULLPTR));
 
     for (auto &shader : _shader_modules) {
-        VKE_SAFE_CLEAN(shader, vkDestroyShaderModule(_context->getDevice(), shader, VKE_NULL_PTR));
+        VKE_SAFE_CLEAN(shader, vkDestroyShaderModule(_context->getDevice(), shader, VKE_NULLPTR));
     }
 }
 
@@ -146,7 +146,7 @@ VkPipelineShaderStageCreateInfo vke::VulkanShader::_load(const std::string &file
     shader_stage_info.stage = stage;
     shader_stage_info.module = _load_shader(filename.c_str(), _context->getDevice());
     shader_stage_info.pName = "main";
-    assert(shader_stage_info.module != VKE_NULL_PTR);
+    assert(shader_stage_info.module != VKE_NULLPTR);
     _shader_modules.push_back(shader_stage_info.module);
     return shader_stage_info;
 }

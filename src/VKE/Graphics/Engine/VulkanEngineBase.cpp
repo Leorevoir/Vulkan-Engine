@@ -4,11 +4,6 @@
 #include <chrono>
 #include <iostream>
 #include <thread>
-#include <vulkan/vulkan_core.h>
-
-#if defined(VKE_USE_PLATFORM_XCB_KHR)
-    #include <vulkan/vulkan_xcb.h>
-#endif
 
 /**
 * public
@@ -94,7 +89,7 @@ void vke::priv::VulkanEngineBase::render()
     _submit_info.pCommandBuffers = &_command_buffer[_current_buffer];
 
     if (_prepared) {
-        VKE_ASSERT(vkQueueSubmit(_queue, 1, &_submit_info, VKE_NULL_PTR));
+        VKE_ASSERT(vkQueueSubmit(_queue, 1, &_submit_info, VKE_NULLPTR));
     }
 
     _submit_frame();
@@ -135,7 +130,7 @@ void vke::priv::VulkanEngineBase::build_command_buffer()
             render_pass_begin_info.framebuffer = _framebuffers[i];
 
             vkCmdBeginRenderPass(_command_buffer[i], &render_pass_begin_info, VK_SUBPASS_CONTENTS_INLINE);
-            vkCmdBindDescriptorSets(_command_buffer[i], VK_PIPELINE_BIND_POINT_GRAPHICS, _pipeline_layout, 0, 1, &(_descriptor_set->get(0)), 0, VKE_NULL_PTR);
+            vkCmdBindDescriptorSets(_command_buffer[i], VK_PIPELINE_BIND_POINT_GRAPHICS, _pipeline_layout, 0, 1, &(_descriptor_set->get(0)), 0, VKE_NULLPTR);
 
             _set_viewports(_command_buffer[i]);
             drawObjects(_command_buffer[i]);
@@ -173,18 +168,14 @@ void vke::priv::VulkanEngineBase::_create_vulkan_instance()
 
     std::vector<const char *> instance_extensions = {VK_KHR_SURFACE_EXTENSION_NAME};
 
-#if defined(VKE_USE_PLATFORM_XCB_KHR)
-    instance_extensions.push_back(VK_KHR_XCB_SURFACE_EXTENSION_NAME);
-#else
-    #error "platform not supported yet"
-#endif
+    instance_extensions.push_back(_window->getVulkanExtension());
 
     for (const auto &ext : _enabled_extensions) {
         instance_extensions.push_back(ext);
     }
 
     std::vector<const char *> instance_layers;
-#ifdef ENABLE_VALIDATION_LAYERS
+#ifdef DEBUG
     instance_layers.push_back("VK_LAYER_KHRONOS_validation");
 #endif
 
@@ -228,8 +219,8 @@ void vke::priv::VulkanEngineBase::_get_physical_device()
     VkSemaphoreCreateInfo semaphore_create_info = {};
     semaphore_create_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
-    VKE_ASSERT(vkCreateSemaphore(_device, &semaphore_create_info, VKE_NULL_PTR, &_semaphores._presentation));
-    VKE_ASSERT(vkCreateSemaphore(_device, &semaphore_create_info, VKE_NULL_PTR, &_semaphores._rendering));
+    VKE_ASSERT(vkCreateSemaphore(_device, &semaphore_create_info, VKE_NULLPTR, &_semaphores._presentation));
+    VKE_ASSERT(vkCreateSemaphore(_device, &semaphore_create_info, VKE_NULLPTR, &_semaphores._rendering));
 
     _submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     _submit_info.pWaitDstStageMask = &_submit_stages;
@@ -246,10 +237,11 @@ void vke::priv::VulkanEngineBase::_get_physical_device()
 void vke::priv::VulkanEngineBase::_create_command_pool()
 {
     VkCommandPoolCreateInfo command_pool_create_info = {};
+
     command_pool_create_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-    command_pool_create_info.queueFamilyIndex = _swapchain.getQueueNodeIndex();
+    command_pool_create_info.queueFamilyIndex = _swapchain.getQueueIndex();
     command_pool_create_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-    VKE_ASSERT(vkCreateCommandPool(_device, &command_pool_create_info, VKE_NULL_PTR, &_command_pool));
+    VKE_ASSERT(vkCreateCommandPool(_device, &command_pool_create_info, VKE_NULLPTR, &_command_pool));
 }
 
 void vke::priv::VulkanEngineBase::_create_command_buffer()
@@ -263,7 +255,7 @@ void vke::priv::VulkanEngineBase::_create_command_buffer()
     command_buffer_allocate_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     command_buffer_allocate_info.commandPool = _command_pool;
     command_buffer_allocate_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    command_buffer_allocate_info.commandBufferCount = static_cast<u32>(_command_buffer.size());
+    command_buffer_allocate_info.commandBufferCount = image_count;
 
     VKE_ASSERT(vkAllocateCommandBuffers(_device, &command_buffer_allocate_info, _command_buffer.data()));
 }
@@ -275,8 +267,9 @@ void vke::priv::VulkanEngineBase::_create_synchronization_objects()
     fence_create_info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
     fence_create_info.flags = VK_FENCE_CREATE_SIGNALED_BIT;
     _wait_fences.resize(_swapchain.getImageCount());
+
     for (auto &fence : _wait_fences) {
-        VKE_ASSERT(vkCreateFence(_device, &fence_create_info, VKE_NULL_PTR, &fence));
+        VKE_ASSERT(vkCreateFence(_device, &fence_create_info, VKE_NULLPTR, &fence));
     }
 }
 
@@ -293,7 +286,7 @@ void vke::priv::VulkanEngineBase::_create_depth_stencil()
     image_create_info.tiling = VK_IMAGE_TILING_OPTIMAL;
     image_create_info.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
 
-    VKE_ASSERT(vkCreateImage(_device, &image_create_info, VKE_NULL_PTR, &_depth_stencil._image));
+    VKE_ASSERT(vkCreateImage(_device, &image_create_info, VKE_NULLPTR, &_depth_stencil._image));
 
     VkMemoryRequirements memory_requirements = {};
     vkGetImageMemoryRequirements(_device, _depth_stencil._image, &memory_requirements);
@@ -303,7 +296,7 @@ void vke::priv::VulkanEngineBase::_create_depth_stencil()
     memory_allocate_info.allocationSize = memory_requirements.size;
     memory_allocate_info.memoryTypeIndex = _vulkan_device->getMemoryType(memory_requirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-    VKE_ASSERT(vkAllocateMemory(_device, &memory_allocate_info, VKE_NULL_PTR, &_depth_stencil._memory));
+    VKE_ASSERT(vkAllocateMemory(_device, &memory_allocate_info, VKE_NULLPTR, &_depth_stencil._memory));
     VKE_ASSERT(vkBindImageMemory(_device, _depth_stencil._image, _depth_stencil._memory, 0));
 
     VkImageViewCreateInfo image_view_create_info = {};
@@ -321,7 +314,7 @@ void vke::priv::VulkanEngineBase::_create_depth_stencil()
     if (_depth_format >= VK_FORMAT_D16_UNORM_S8_UINT) {
         image_view_create_info.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
     }
-    VKE_ASSERT(vkCreateImageView(_device, &image_view_create_info, VKE_NULL_PTR, &_depth_stencil._image_view));
+    VKE_ASSERT(vkCreateImageView(_device, &image_view_create_info, VKE_NULLPTR, &_depth_stencil._image_view));
 }
 
 void vke::priv::VulkanEngineBase::_create_pipeline_cache()
@@ -329,17 +322,16 @@ void vke::priv::VulkanEngineBase::_create_pipeline_cache()
     VkPipelineCacheCreateInfo pipeline_cache_create_info = {};
 
     pipeline_cache_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
-    VKE_ASSERT(vkCreatePipelineCache(_device, &pipeline_cache_create_info, VKE_NULL_PTR, &_pipeline_cache));
+    VKE_ASSERT(vkCreatePipelineCache(_device, &pipeline_cache_create_info, VKE_NULLPTR, &_pipeline_cache));
 }
 
 void vke::priv::VulkanEngineBase::_create_render_pass()
 {
     // clang-format off
-    auto &sc_color = _swapchain.getColor();
     const VkAttachmentDescription attachments[2] = {
         {
             .flags = {},
-            .format = sc_color._format,
+            .format = _swapchain.getColor()._format,
             .samples = VK_SAMPLE_COUNT_1_BIT,
             .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
             .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
@@ -372,13 +364,13 @@ void vke::priv::VulkanEngineBase::_create_render_pass()
         .flags = {},
         .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
         .inputAttachmentCount = 0,
-        .pInputAttachments = VKE_NULL_PTR,
+        .pInputAttachments = VKE_NULLPTR,
         .colorAttachmentCount = 1,
         .pColorAttachments = &color_refs,
-        .pResolveAttachments = VKE_NULL_PTR,
+        .pResolveAttachments = VKE_NULLPTR,
         .pDepthStencilAttachment = &depth_ref,
         .preserveAttachmentCount = 0,
-        .pPreserveAttachments = VKE_NULL_PTR
+        .pPreserveAttachments = VKE_NULLPTR
     };
     const VkSubpassDependency subpass_dependency[2] = {
         {
@@ -411,21 +403,17 @@ void vke::priv::VulkanEngineBase::_create_render_pass()
     render_pass_create_info.dependencyCount = 2;
     render_pass_create_info.pDependencies = subpass_dependency;
 
-    VKE_ASSERT(vkCreateRenderPass(_device, &render_pass_create_info, VKE_NULL_PTR, &_render_pass));
+    VKE_ASSERT(vkCreateRenderPass(_device, &render_pass_create_info, VKE_NULLPTR, &_render_pass));
 }
 
 void vke::priv::VulkanEngineBase::_create_framebuffer()
 {
-    for (u32 i = 0; i < _framebuffers.size(); ++i) {
-        vkDestroyFramebuffer(_device, _framebuffers[i], VKE_NULL_PTR);
-    }
-
     VkImageView attachments[2];
     attachments[1] = _depth_stencil._image_view;
 
     VkFramebufferCreateInfo framebuffer_create_info = {
         .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-        .pNext = VKE_NULL_PTR,
+        .pNext = VKE_NULLPTR,
         .flags = {},
         .renderPass = _render_pass,
         .attachmentCount = 2,
@@ -438,7 +426,7 @@ void vke::priv::VulkanEngineBase::_create_framebuffer()
     _framebuffers.resize(_swapchain.getImageCount());
     for (u32 i = 0; i < _framebuffers.size(); ++i) {
         attachments[0] = _swapchain.getBuffers()[i]._view;
-        VKE_ASSERT(vkCreateFramebuffer(_device, &framebuffer_create_info, VKE_NULL_PTR, &_framebuffers[i]));
+        VKE_ASSERT(vkCreateFramebuffer(_device, &framebuffer_create_info, VKE_NULLPTR, &_framebuffers[i]));
     }
 }
 
@@ -461,26 +449,36 @@ void vke::priv::VulkanEngineBase::_destroy()
 {
     VKE_ASSERT(vkQueueWaitIdle(_queue));
     vkDeviceWaitIdle(_device);
-    VKE_SAFE_CLEAN(_descriptor_pool, vkDestroyDescriptorPool(_device, _descriptor_pool, VKE_NULL_PTR));
-    VKE_SAFE_CLEAN(_render_pass, vkDestroyRenderPass(_device, _render_pass, VKE_NULL_PTR));
+    VKE_SAFE_CLEAN(_descriptor_pool, vkDestroyDescriptorPool(_device, _descriptor_pool, VKE_NULLPTR));
+    VKE_SAFE_CLEAN(_render_pass, vkDestroyRenderPass(_device, _render_pass, VKE_NULLPTR));
 
     for (auto &shader : _shader_modules) {
-        VKE_SAFE_CLEAN(shader, vkDestroyShaderModule(_device, shader, VKE_NULL_PTR));
+        VKE_SAFE_CLEAN(shader, vkDestroyShaderModule(_device, shader, VKE_NULLPTR));
     }
 
-    VKE_SAFE_CLEAN(_pipeline_cache, vkDestroyPipelineCache(_device, _pipeline_cache, VKE_NULL_PTR));
+    VKE_SAFE_CLEAN(_pipeline_cache, vkDestroyPipelineCache(_device, _pipeline_cache, VKE_NULLPTR));
 
-    VKE_SAFE_CLEAN(_semaphores._presentation, vkDestroySemaphore(_device, _semaphores._presentation, VKE_NULL_PTR));
-    VKE_SAFE_CLEAN(_semaphores._rendering, vkDestroySemaphore(_device, _semaphores._rendering, VKE_NULL_PTR));
+    VKE_SAFE_CLEAN(_semaphores._presentation, vkDestroySemaphore(_device, _semaphores._presentation, VKE_NULLPTR));
+    VKE_SAFE_CLEAN(_semaphores._rendering, vkDestroySemaphore(_device, _semaphores._rendering, VKE_NULLPTR));
 
-    for (auto &fence : _wait_fences) {
-        VKE_SAFE_CLEAN(fence, vkDestroyFence(_device, fence, VKE_NULL_PTR));
-    }
     _swapchain.destroy();
     _destroy_command_buffer();
-    _destroy_surface();
+    _destroy_framebuffer();
+    _destroy_depth_stencil();
     _vulkan_device.reset();
-    VKE_SAFE_CLEAN(_instance, vkDestroyInstance(_instance, VKE_NULL_PTR));
+    VKE_SAFE_CLEAN(_instance, vkDestroyInstance(_instance, VKE_NULLPTR));
+    _prepared = false;
+}
+
+void vke::priv::VulkanEngineBase::_destroy_fences()
+{
+    if (_wait_fences.empty()) {
+        return;
+    }
+
+    for (auto &fence : _wait_fences) {
+        vkDestroyFence(_device, fence, VKE_NULLPTR);
+    }
 }
 
 void vke::priv::VulkanEngineBase::_destroy_command_buffer()
@@ -492,21 +490,27 @@ void vke::priv::VulkanEngineBase::_destroy_command_buffer()
     vkFreeCommandBuffers(_device, _command_pool, static_cast<u32>(_command_buffer.size()), _command_buffer.data());
 }
 
-void vke::priv::VulkanEngineBase::_destroy_surface()
+void vke::priv::VulkanEngineBase::_destroy_framebuffer()
 {
-    if (!_prepared) {
+    if (_framebuffers.empty()) {
         return;
     }
 
-    VKE_SAFE_CLEAN(_depth_stencil._image_view, vkDestroyImageView(_device, _depth_stencil._image_view, VKE_NULL_PTR));
-    VKE_SAFE_CLEAN(_depth_stencil._image, vkDestroyImage(_device, _depth_stencil._image, VKE_NULL_PTR));
-    VKE_SAFE_CLEAN(_depth_stencil._memory, vkFreeMemory(_device, _depth_stencil._memory, VKE_NULL_PTR));
+    for (auto &framebuffer : _framebuffers) {
+        vkDestroyFramebuffer(_device, framebuffer, VKE_NULLPTR);
+    }
+}
 
-    for (u32 i = 0; i < _framebuffers.size(); ++i) {
-        VKE_SAFE_CLEAN(_framebuffers[i], vkDestroyFramebuffer(_device, _framebuffers[i], VKE_NULL_PTR));
+void vke::priv::VulkanEngineBase::_destroy_depth_stencil()
+{
+    if (_depth_stencil._image_view == VKE_NULLPTR) {
+        return;
     }
 
-    _prepared = false;
+    vkDestroyImageView(_device, _depth_stencil._image_view, VKE_NULLPTR);
+    vkDestroyImage(_device, _depth_stencil._image, VKE_NULLPTR);
+    vkFreeMemory(_device, _depth_stencil._memory, VKE_NULLPTR);
+    _depth_stencil = {};
 }
 
 /**
@@ -521,15 +525,19 @@ void vke::priv::VulkanEngineBase::_resize_window()
 
     _prepared = false;
     vkDeviceWaitIdle(_device);
+
     _swapchain.create(_size, false);
-    vkDestroyImageView(_device, _depth_stencil._image_view, VKE_NULL_PTR);
-    vkDestroyImage(_device, _depth_stencil._image, VKE_NULL_PTR);
-    vkFreeMemory(_device, _depth_stencil._memory, VKE_NULL_PTR);
+
+    _destroy_depth_stencil();
     _create_depth_stencil();
+
+    _destroy_framebuffer();
     _create_framebuffer();
+
     _destroy_command_buffer();
     _create_command_buffer();
     build_command_buffer();
+
     vkDeviceWaitIdle(_device);
     _prepared = true;
 }
@@ -540,7 +548,7 @@ void vke::priv::VulkanEngineBase::_acquire_frame()
         return;
     }
 
-    const auto error = _swapchain.next(_semaphores._presentation, _current_buffer);
+    const auto error = _swapchain.next(_semaphores._presentation, &_current_buffer);
 
     if (error == VK_SUBOPTIMAL_KHR || error == VK_ERROR_OUT_OF_DATE_KHR) {
         std::cout << "VulkanEngineBase::_acquire_frame: Swapchain out of date or suboptimal, resizing window..." << std::endl;
