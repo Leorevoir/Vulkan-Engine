@@ -1,7 +1,6 @@
 #include <VKE/Error.hpp>
 #include <VKE/Graphics/Descriptor/VulkanDescriptorSet.hpp>
-
-#define VKE_MATRIX_4F_SIZE 64
+#include <VKE/Maths/Matrix.hpp>
 
 /**
 * public
@@ -112,7 +111,12 @@ void vke::priv::VulkanDescriptorSet::generate(VkPipelineLayout *pipeline_layout)
 
     VKE_ASSERT(vkCreateDescriptorSetLayout(_device, &layout_info, VKE_NULLPTR, &_layout));
 
-    VkPushConstantRange push_constant_range = {VK_SHADER_STAGE_VERTEX_BIT, VKE_MATRIX_4F_SIZE, 0};
+    const VkPushConstantRange push_constant_range = {
+        .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
+        .offset = 0,
+        .size = sizeof(maths::Matrix4f),
+    };
+
     VkPipelineLayoutCreateInfo pipeline_info = {};
     pipeline_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     pipeline_info.setLayoutCount = 1;
