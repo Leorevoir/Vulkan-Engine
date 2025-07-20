@@ -32,11 +32,12 @@ class VKE_API VulkanSwapchain final : public NonMovable
 
         void destroy();
 
+        /** getters */
         u32 getQueueNodeIndex() const;
         u32 getImageCount() const;
-
-        SwapChainColor color;
-        std::vector<SwapchainBuffers> _buffers;
+        SwapChainColor &getColor();
+        std::vector<VkImage> &getImages();
+        std::vector<SwapchainBuffers> &getBuffers();
 
     private:
         u32 _queue_index = 0;
@@ -49,7 +50,9 @@ class VKE_API VulkanSwapchain final : public NonMovable
 
         VkSwapchainKHR _swapchain = VKE_NULL_PTR;
 
+        SwapChainColor _color;
         std::vector<VkImage> _images;
+        std::vector<SwapchainBuffers> _buffers;
 
         PFN_vkQueuePresentKHR _QueuePresentKHR;
         PFN_vkCreateSwapchainKHR _CreateSwapchainKHR;

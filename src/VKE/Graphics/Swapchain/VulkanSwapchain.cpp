@@ -103,21 +103,21 @@ void vke::priv::VulkanSwapchain::init(Window &window)
     VKE_ASSERT(_GetPhysicalDeviceSurfaceFormatsKHR(_physical_device, _surface, &format_count, surface_formats.data()));
 
     if (format_count == 1 && surface_formats[0].format == VK_FORMAT_UNDEFINED) {
-        color._format = VK_FORMAT_B8G8R8A8_UNORM;
-        color._space = surface_formats[0].colorSpace;
+        _color._format = VK_FORMAT_B8G8R8A8_UNORM;
+        _color._space = surface_formats[0].colorSpace;
         return;
     }
 
     for (auto &&surface : surface_formats) {
         if (surface.format == VK_FORMAT_B8G8R8A8_UNORM) {
-            color._format = surface.format;
-            color._space = surface.colorSpace;
+            _color._format = surface.format;
+            _color._space = surface.colorSpace;
             return;
         }
     }
 
-    color._format = surface_formats[0].format;
-    color._space = surface_formats[0].colorSpace;
+    _color._format = surface_formats[0].format;
+    _color._space = surface_formats[0].colorSpace;
 }
 
 void vke::priv::VulkanSwapchain::connect(VkInstance instance, VkPhysicalDevice physical_device, VkDevice device)
@@ -234,8 +234,8 @@ void vke::priv::VulkanSwapchain::create(vke::maths::Vector2u &size, bool vsync)
     swapchain_create_info.pNext = NULL;
     swapchain_create_info.surface = _surface;
     swapchain_create_info.minImageCount = desired_number_of_swapchain_images;
-    swapchain_create_info.imageFormat = color._format;
-    swapchain_create_info.imageColorSpace = color._space;
+    swapchain_create_info.imageFormat = _color._format;
+    swapchain_create_info.imageColorSpace = _color._space;
     swapchain_create_info.imageExtent = {extent.width, extent.height};
     swapchain_create_info.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
     swapchain_create_info.preTransform = static_cast<VkSurfaceTransformFlagBitsKHR>(transform_flags);
@@ -275,7 +275,7 @@ void vke::priv::VulkanSwapchain::create(vke::maths::Vector2u &size, bool vsync)
 
         colorAttachmentView.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
         colorAttachmentView.pNext = NULL;
-        colorAttachmentView.format = color._format;
+        colorAttachmentView.format = _color._format;
         colorAttachmentView.components = {VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A};
         colorAttachmentView.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
         colorAttachmentView.subresourceRange.baseMipLevel = 0;
@@ -336,6 +336,10 @@ void vke::priv::VulkanSwapchain::destroy()
     }
 }
 
+/**
+ * getters
+ */
+
 u32 vke::priv::VulkanSwapchain::getQueueNodeIndex() const
 {
     return _queue_index;
@@ -346,6 +350,21 @@ u32 vke::priv::VulkanSwapchain::getImageCount() const
     return _image_count;
 }
 
+vke::priv::SwapChainColor &vke::priv::VulkanSwapchain::getColor()
+{
+    return _color;
+}
+
+std::vector<VkImage> &vke::priv::VulkanSwapchain::getImages()
+{
+    return _images;
+}
+
+std::vector<vke::priv::SwapchainBuffers> &vke::priv::VulkanSwapchain::getBuffers()
+{
+    return _buffers;
+}
+
 /**
 * private
 */
@@ -353,15 +372,10 @@ u32 vke::priv::VulkanSwapchain::getImageCount() const
 void vke::priv::VulkanSwapchain::_destroy_buffer()
 {
     for (u32 i = 0; i < _buffers.size(); ++i) {
-        //TODO: use VKE_SAFE_CLEAN macro
-        if (_buffers[i]._view) {
-            vkDestroyImageView(_device, _buffers[i]._view, VKE_NULL_PTR);
-            _buffers[i]._view = VKE_NULL_PTR;
-        }
-        if (_buffers[i]._image) {
-            vkDestroyImage(_device, _buffers[i]._image, VKE_NULL_PTR);
-            _buffers[i]._image = VKE_NULL_PTR;
-        }
+        VKE_SAFE_CLEAN(_buffers[i]._view, vkDestroyImageView(_device, _buffers[i]._view, VKE_NULL_PTR));
+
+        /** NOTE: do not destroy the image it is managed by the swapchain */
+        _buffers[i]._view = VK_NULL_HANDLE;
+        _buffers[i]._image = VK_NULL_HANDLE;
     }
-    _buffers.clear();
 }
