@@ -42,8 +42,11 @@
     #define VKE_CLEANUP(func) __attribute__((cleanup(func)))
 #endif
 
-#define VKE_NULL_PTR nullptr
-#define VKE_CONSTEXPR constexpr
+#define VKE_NULLPTR nullptr
+
+#ifndef VKE_CONSTEXPR
+    #define VKE_CONSTEXPR constexpr
+#endif
 
 #define VKE_SUCCESS VK_SUCCESS
 #define VKE_TRUE VK_TRUE
@@ -86,9 +89,9 @@
 
 #define VKE_SAFE_CLEAN(n, func)                                                                                                                                          \
     do {                                                                                                                                                                 \
-        if ((n) != VKE_NULL_PTR) {                                                                                                                                       \
+        if ((n) != VKE_NULLPTR) {                                                                                                                                        \
             (func);                                                                                                                                                      \
-            (n) = VKE_NULL_PTR;                                                                                                                                          \
+            (n) = VKE_NULLPTR;                                                                                                                                           \
         }                                                                                                                                                                \
     } while (0)
 
