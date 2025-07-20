@@ -97,7 +97,7 @@ void vke::priv::VulkanPipelines::createBase(const VkPipelineLayout &pipeline_lay
 void vke::priv::VulkanPipelines::create(VulkanShader *shader, VkPolygonMode polygon_mode)
 
 {
-    auto &shader_pipeline = shader->getPipeline();
+    auto shader_pipeline = shader->getPipeline();
 
     VKE_SAFE_CLEAN(shader_pipeline, vkDestroyPipeline(_device, shader_pipeline, VKE_NULLPTR));
 
@@ -111,7 +111,7 @@ void vke::priv::VulkanPipelines::create(VulkanShader *shader, VkPolygonMode poly
         _dynamic_state = _create_dynamic_state(_dynamic_state_enables.data(), static_cast<u32>(_dynamic_state_enables.size()));
     }
 
-    auto &shader_stages = shader->getShaderStages();
+    auto shader_stages = shader->getShaderStages();
 
     if (shader->isOneStage()) {
         _pipeline_info.stageCount = 1;
