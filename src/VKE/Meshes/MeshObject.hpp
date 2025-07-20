@@ -8,18 +8,19 @@
 #include <VKE/Graphics/Device/VulkanBuffer.hpp>
 #include <VKE/Graphics/Shader/VulkanShader.hpp>
 
+#include <memory>
+
 namespace vke {
 
 class VKE_API MeshObject : public VulkanObject
 {
     public:
-        MeshObject();
         virtual ~MeshObject();
 
         /** after vulkan */
         /* + initialize() */
         /* + update() */
-        void bind(VkCommandBuffer &cmd_buffer, VulkanShader *vulkan_shader);
+        void bind(VkCommandBuffer &cmd_buffer, std::shared_ptr<VulkanShader> vulkan_shader);
 
         /** getters */
         const maths::Vector3f &getPosition() const;

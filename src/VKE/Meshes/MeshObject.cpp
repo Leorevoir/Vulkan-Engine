@@ -11,16 +11,17 @@ vke::MeshObject::~MeshObject()
     _index_buffer.destroy();
 }
 
-void vke::MeshObject::bind(VkCommandBuffer &cmd_buffer, VulkanShader *vulkan_shader)
+void vke::MeshObject::bind(VkCommandBuffer &cmd_buffer, std::shared_ptr<VulkanShader> vulkan_shader)
 {
     VkDeviceSize offsets[1] = {0};
-    auto &pipeline = vulkan_shader->getPipeline();
+    auto pipeline = vulkan_shader->getPipeline();
 
     if (pipeline) {
         vkCmdBindPipeline(cmd_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
     } else {
         throw exception::RuntimeError("MeshObject::build", "Pipeline is not set for the shader.");
     }
+
     vkCmdBindVertexBuffers(cmd_buffer, 0, 1, &_vertex_buffer._buffer, offsets);
     vkCmdBindIndexBuffer(cmd_buffer, _index_buffer._buffer, 0, VK_INDEX_TYPE_UINT32);
     vkCmdDrawIndexed(cmd_buffer, _index_count, 1, 0, 0, 0);
