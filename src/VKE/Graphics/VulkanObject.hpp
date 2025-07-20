@@ -11,10 +11,12 @@ class VKE_API VulkanObject
     public:
         VulkanObject(VulkanContext *context) : _context(context)
         {
+            /* __ctor__ */
         }
 
         virtual ~VulkanObject() = default;
 
+        virtual void initialize() = 0;
         virtual void update() = 0;
 
     protected:
