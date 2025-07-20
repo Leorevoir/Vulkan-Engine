@@ -27,14 +27,13 @@ function _info()
 function _build_shader_cache()
 {
     _info "compiling shaders to SPIR-V..."
-    find ./assets/shaders/ -type f \( -name "*.frag" -o -name "*.vert" -o -name "*.comp" \) \
-    | parallel --eta '
-        ext="{= s:.*\.(frag|vert)$:\1: =}";
-        base=$(basename {} .$ext);
-        out=${base}_${ext}.spv;
-        echo "Compiling {} -> $out";
-        glslangValidator -V {} -o $out
-    '
+
+    cd ./assets/shaders || _error "cd failed"
+    if ! make -j $(nproc) ; then
+        _error "shader compilation error" "failed to compile shaders to SPIR-V"
+    fi
+    cd ../.. || _error "cd failed"
+
     _success "shaders compiled to SPIR-V !"
 }
 
