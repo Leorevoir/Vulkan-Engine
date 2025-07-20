@@ -9,6 +9,11 @@
 
 vke::UniformCamera::UniformCamera(VulkanContext *context) : VulkanObject(context)
 {
+    /* __ctor__ */
+}
+
+void vke::UniformCamera::initialize()
+{
     VKE_ASSERT(_context->_device->createBuffer(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
         &_uniform_buffer, sizeof(_camera), &_camera));
     VKE_ASSERT(_uniform_buffer.map());
@@ -34,6 +39,25 @@ void vke::UniformCamera::update()
     _camera._model = model;
     _camera._normal = maths::inverseTranspose(_camera._view * model);
     std::memcpy(_uniform_buffer._mapped, &_camera, sizeof(_camera));
+}
+
+/**
+ * setters
+ */
+
+void vke::UniformCamera::setPosition(const maths::Vector3f &position)
+{
+    _position = position;
+}
+
+void vke::UniformCamera::setRotation(const maths::Vector3f &rotation)
+{
+    _rotation = rotation;
+}
+
+void vke::UniformCamera::setZoom(f32 zoom)
+{
+    _zoom = zoom;
 }
 
 /**

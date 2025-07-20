@@ -13,7 +13,12 @@ class UniformCamera : public VulkanObject
         UniformCamera(VulkanContext *context);
         ~UniformCamera() override = default;
 
+        void initialize() override;
         void update() override;
+
+        void setRotation(const maths::Vector3f &rotation);
+        void setPosition(const maths::Vector3f &position);
+        void setZoom(f32 zoom);
 
     protected:
         Camera _camera;
