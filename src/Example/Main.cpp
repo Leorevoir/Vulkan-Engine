@@ -8,6 +8,9 @@ int main(void)
     try {
         auto engine = std::make_unique<TriangleEngine>();
 
+        engine->start();
+        engine->start();
+
     } catch (const vke::exception::Error &e) {
         std::cout << "Error: " << e.where() << std::endl << "Message: " << e.what() << std::endl;
     }
