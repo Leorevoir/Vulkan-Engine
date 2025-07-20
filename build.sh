@@ -24,21 +24,6 @@ function _info()
     echo -e "${ORG}[🚧] RUNNING:\t${RST} ${ILC}$1${RST}"
 }
 
-function _run_compression()
-{
-    if ! { command -v python3 > /dev/null; } 2>&1; then
-        _error "command 'python3' not found" "please install 'python3' or 'nix develop' 🤓"
-    fi
-    _info "command 'python3' found, running extraction script..."
-    if ! python3 script/compression.py unzip assets/models/models.zip assets/models; then
-        _error "script/compression.py error" "failed to run extraction script for assets/models"
-    fi
-    if ! python3 script/compression.py unzip assets/textures/textures.zip assets/textures; then
-        _error "script/compression.py error" "failed to run extraction script for assets/textures"
-    fi
-    _success "extraction script completed successfully"
-}
-
 function _build_shader_cache()
 {
     _info "compiling shaders to SPIR-V..."
