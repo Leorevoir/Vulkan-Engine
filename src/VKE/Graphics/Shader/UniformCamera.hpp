@@ -1,33 +1,31 @@
 #pragma once
 
 #include <VKE/Backend.hpp>
+#include <VKE/Graphics/Shader/VulkanUniform.hpp>
 #include <VKE/Graphics/VulkanObject.hpp>
-#include <VKE/Macros.hpp>
 #include <VKE/Scene/Camera/Camera.hpp>
 
 namespace vke {
 
-class UniformCamera : public VulkanObject
+class VKE_API UniformCamera : public VulkanUniform, public VulkanObject
 {
     public:
-        UniformCamera(VulkanContext *context);
+        constexpr UniformCamera() = default;
         ~UniformCamera() override = default;
 
         void initialize() override;
         void update() override;
 
-        void setRotation(const maths::Vector3f &rotation);
-        void setPosition(const maths::Vector3f &position);
-        void setZoom(f32 zoom);
+        void setRotation(maths::Vector3f *rotation);
+        void setPosition(maths::Vector3f *position);
+        void setZoom(f32 *zoom);
 
     protected:
         Camera _camera;
 
-        maths::Vector3f _rotation = {};
-        maths::Vector3f _position = {};
-        f32 _zoom = 1.f;
-
-        vke::VulkanBuffer _uniform_buffer;
+        maths::Vector3f *_rotation = nullptr;
+        maths::Vector3f *_position = nullptr;
+        f32 *_zoom = nullptr;
 };
 
 }// namespace vke
