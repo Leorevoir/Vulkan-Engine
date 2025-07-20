@@ -23,7 +23,7 @@ struct VKE_API SwapChainColor {
 class VKE_API VulkanSwapchain final : public NonMovable
 {
     public:
-        void init(Window &window);
+        void init(std::shared_ptr<Window> &window);
         void create(maths::Vector2u &size, bool vsync = false);
         void connect(VkInstance instance, VkPhysicalDevice physical_device, VkDevice device);
 

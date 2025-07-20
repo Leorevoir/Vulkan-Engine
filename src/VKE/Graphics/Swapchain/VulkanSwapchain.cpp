@@ -30,11 +30,11 @@
 * public
 */
 
-void vke::priv::VulkanSwapchain::init(Window &window)
+void vke::priv::VulkanSwapchain::init(std::shared_ptr<Window> &window)
 {
     u32 queue_count;
 
-    window.createVulkanSurface(_instance, _surface);
+    window->createVulkanSurface(_instance, _surface);
 
     vkGetPhysicalDeviceQueueFamilyProperties(_physical_device, &queue_count, VKE_NULL_PTR);
     assert(queue_count >= 1);

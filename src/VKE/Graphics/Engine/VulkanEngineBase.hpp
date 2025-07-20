@@ -23,9 +23,7 @@ class VKE_API VulkanEngineBase : public VulkanEngineInterface
         VulkanEngineBase();
         ~VulkanEngineBase() override;
 
-        void start();
-        void renderLoop();
-        void stop();
+        virtual void start();
 
     protected:
         bool _running = false;
@@ -33,18 +31,18 @@ class VKE_API VulkanEngineBase : public VulkanEngineInterface
         bool _paused = false;
         f32 _frame_time = 0.0f;
         maths::Vector2u _size = {800, 600};
-        std::unique_ptr<Window> _window;
+        std::shared_ptr<Window> _window;
         std::unique_ptr<VulkanPipelines> _pipelines;
 
         void renderFrame();
 
         void initialize() override;
-        void update() override;
         void render() override;
 
         virtual void drawObjects(VkCommandBuffer VKE_UNUSED &cmd) {};
         virtual void buildCommandBufferBeforeRenderPass() {};
         virtual void buildCommandBufferAfterRenderPass() {};
+        void build_command_buffer();
 
         void waitForCurrentFrame();
 
@@ -92,7 +90,9 @@ class VKE_API VulkanEngineBase : public VulkanEngineInterface
         VkPipelineCache _pipeline_cache = VKE_NULL_PTR;
         VkPipelineLayout _pipeline_layout = VKE_NULL_PTR;
         VkDescriptorPool _descriptor_pool = VKE_NULL_PTR;
-        std::unique_ptr<VulkanContext> _context;
+        VkPipelineStageFlags _submit_stages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+
+        std::shared_ptr<VulkanContext> _context;
         std::unique_ptr<VulkanDescriptorSet> _descriptor_set;
         std::unique_ptr<VulkanVertexDescriptor> _vertex_descriptor;
 
@@ -119,9 +119,6 @@ class VKE_API VulkanEngineBase : public VulkanEngineInterface
         void _acquire_frame();
         void _submit_frame();
         void _resize_window();
-
-        /** build command */
-        void _build_command_buffer();
         void _set_viewports(VkCommandBuffer &cmd);
 
         /** destroy */
