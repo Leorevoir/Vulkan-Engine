@@ -288,6 +288,18 @@ struct VKEM_API Vector : public detail::VectorData<N, T> {
 };
 
 template<usize N, typename T>
+VKE_INLINE VKE_CONSTEXPR bool operator==(const Vector<N, T> &a, const Vector<N, T> &b)
+{
+    for (usize i = 0; i < N; ++i) {
+
+        if (a[i] != b[i]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+template<usize N, typename T>
 VKE_INLINE VKE_CONSTEXPR auto operator+(const Vector<N, T> &v, const T &t)
 {
     Vector<N, T> vec(v);
