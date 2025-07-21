@@ -56,12 +56,14 @@ void vke::priv::VulkanEngineBase::renderFrame()
     const auto time_start = std::chrono::high_resolution_clock::now();
 
     update();
+    draw();
     render();
 
     const auto time_end = std::chrono::high_resolution_clock::now();
     const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(time_end - time_start).count();
 
     _frame_time = static_cast<f32>(duration) / 1000.0f;
+    vkDeviceWaitIdle(_device);
 }
 
 void vke::priv::VulkanEngineBase::render()
@@ -179,20 +181,31 @@ void vke::priv::VulkanEngineBase::_create_vulkan_instance()
 
 void vke::priv::VulkanEngineBase::_get_physical_device()
 {
-    uint32_t device_count = 0;
+    u32 gpu_count = 0;
 
-    VKE_ASSERT(vkEnumeratePhysicalDevices(_instance, &device_count, nullptr));
-    if (device_count == 0) {
-        throw vke::exception::RuntimeError("vke::priv::VulkanEngineBase::_get_physical_device", "No Vulkan physical devices found");
+    VKE_ASSERT(vkEnumeratePhysicalDevices(_instance, &gpu_count, VKE_NULLPTR));
+    assert(gpu_count > 0 && "No Vulkan physical devices found");
+
+    std::vector<VkPhysicalDevice> physical_devices(gpu_count);
+    VKE_ASSERT(vkEnumeratePhysicalDevices(_instance, &gpu_count, physical_devices.data()));
+
+    if (_selected_gpu_index <= gpu_count) {
+        _physical_device = physical_devices[_selected_gpu_index];
     }
 
-    std::vector<VkPhysicalDevice> devices(device_count);
-    VKE_ASSERT(vkEnumeratePhysicalDevices(_instance, &device_count, devices.data()));
-
-    _physical_device = devices[0];
     vkGetPhysicalDeviceProperties(_physical_device, &_physical_device_properties);
     vkGetPhysicalDeviceFeatures(_physical_device, &_physical_device_features);
     vkGetPhysicalDeviceMemoryProperties(_physical_device, &_physical_device_memory_properties);
+
+    // if (_physical_device_features.multiViewport) {
+    //     _enabled_features.multiViewport = VK_TRUE;
+    // }
+    // if (_physical_device_features.sampleRateShading) {
+    //     _enabled_features.sampleRateShading = VK_TRUE;
+    // }
+    // _enabled_features.fillModeNonSolid = _physical_device_features.fillModeNonSolid ? VK_TRUE : VK_FALSE;
+
+    getDeviceFeatures();
 
     _vulkan_device = std::make_unique<VulkanDevice>(_physical_device);
     _vulkan_device->createLogicalDevice(_enabled_features, _enabled_device_extensions, _device_create_next_chain);
@@ -200,7 +213,9 @@ void vke::priv::VulkanEngineBase::_get_physical_device()
 
     vkGetDeviceQueue(_device, _vulkan_device->_queueFamilyIndices.graphics, 0, &_queue);
 
-    _depth_format = _vulkan_device->getSupportedDepthFormat();
+    const u32 valid_format = getSuportedDepthFormat(_physical_device, &_depth_format);
+    assert(valid_format);
+
     _swapchain.connect(_instance, _physical_device, _device);
 
     VkSemaphoreCreateInfo semaphore_create_info = {};
@@ -436,7 +451,14 @@ void vke::priv::VulkanEngineBase::_destroy()
 {
     VKE_ASSERT(vkQueueWaitIdle(_queue));
     vkDeviceWaitIdle(_device);
-    VKE_SAFE_CLEAN(_descriptor_pool, vkDestroyDescriptorPool(_device, _descriptor_pool, VKE_NULLPTR));
+
+    // Destroy resources that depend on the device
+    _context.reset();
+    _pipelines.reset();
+    _vertex_descriptor.reset();
+    _descriptor_set.reset();
+
+    // Clean up other Vulkan resources
     VKE_SAFE_CLEAN(_render_pass, vkDestroyRenderPass(_device, _render_pass, VKE_NULLPTR));
 
     for (auto &shader : _shader_modules) {
@@ -444,7 +466,6 @@ void vke::priv::VulkanEngineBase::_destroy()
     }
 
     VKE_SAFE_CLEAN(_pipeline_cache, vkDestroyPipelineCache(_device, _pipeline_cache, VKE_NULLPTR));
-
     VKE_SAFE_CLEAN(_semaphores._presentation, vkDestroySemaphore(_device, _semaphores._presentation, VKE_NULLPTR));
     VKE_SAFE_CLEAN(_semaphores._rendering, vkDestroySemaphore(_device, _semaphores._rendering, VKE_NULLPTR));
 
@@ -452,7 +473,12 @@ void vke::priv::VulkanEngineBase::_destroy()
     _destroy_command_buffer();
     _destroy_framebuffer();
     _destroy_depth_stencil();
+    _destroy_fences();
+
+    // Destroy the device
     _vulkan_device.reset();
+
+    // Destroy the instance
     VKE_SAFE_CLEAN(_instance, vkDestroyInstance(_instance, VKE_NULLPTR));
     _prepared = false;
 }

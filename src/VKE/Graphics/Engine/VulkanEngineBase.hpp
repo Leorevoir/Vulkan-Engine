@@ -24,25 +24,30 @@ class VKE_API VulkanEngineBase : public VulkanEngineInterface
         ~VulkanEngineBase() override;
 
         virtual void start();
+        virtual void getDeviceFeatures() {};
 
     protected:
         bool _running = false;
         bool _prepared = false;
         bool _paused = false;
         f32 _frame_time = 0.0f;
+        u32 _selected_gpu_index = 0;
 
         maths::Vector2u _size = {800, 600};
 
         //TODO: better way to handle this
         VkPipelineLayout _pipeline_layout = VKE_NULLPTR;
         VkRenderPass _render_pass = VKE_NULLPTR;
+        VkDevice _device = VKE_NULLPTR;
+
+        /** smart pointers, aligned */
+        std::unique_ptr<VulkanDevice> _vulkan_device;
+        std::shared_ptr<VulkanContext> _context;
+        std::unique_ptr<VulkanPipelines> _pipelines;
+        std::unique_ptr<VulkanVertexDescriptor> _vertex_descriptor;
+        std::unique_ptr<VulkanDescriptorSet> _descriptor_set;
 
         std::shared_ptr<Window> _window;
-        std::unique_ptr<VulkanPipelines> _pipelines;
-
-        std::shared_ptr<VulkanContext> _context;
-        std::unique_ptr<VulkanDescriptorSet> _descriptor_set;
-        std::unique_ptr<VulkanVertexDescriptor> _vertex_descriptor;
 
         void renderFrame();
 
@@ -65,9 +70,7 @@ class VKE_API VulkanEngineBase : public VulkanEngineInterface
         /** Vulkan extensions */
 
         /** Vulkan device */
-        std::unique_ptr<VulkanDevice> _vulkan_device;
         void *_device_create_next_chain = VKE_NULLPTR;
-        VkDevice _device = VKE_NULLPTR;
         VkPhysicalDevice _physical_device = VKE_NULLPTR;
         VkPhysicalDeviceProperties _physical_device_properties = {};
         VkPhysicalDeviceFeatures _physical_device_features = {};
