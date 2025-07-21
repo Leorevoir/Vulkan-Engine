@@ -2,6 +2,7 @@
 
     #include <VKE/Error.hpp>
     #include <VKE/Memory.hpp>
+    #include <VKE/Systems/MouseEvent.hpp>
     #include <VKE/Window/Platform/Xcb.hpp>
 
 /**
@@ -147,13 +148,22 @@ void vke::detail::VKE_XCBWindow::_handle_events(xcb_generic_event_t *event)
 
         case XCB_BUTTON_PRESS: {
             const xcb_button_press_event_t *b = reinterpret_cast<xcb_button_press_event_t *>(event);
+            auto &mouse_button = event::MouseEvent::getInstance();
 
             switch (b->detail) {
+                case XCB_BUTTON_INDEX_1:
+                    mouse_button.setButton(event::MouseEvent::Type::Left);
+                case XCB_BUTTON_INDEX_2:
+                    mouse_button.setButton(event::MouseEvent::Type::Middle);
+                    break;
+                case XCB_BUTTON_INDEX_3:
+                    mouse_button.setButton(event::MouseEvent::Type::Right);
+                    break;
                 case XCB_BUTTON_INDEX_4:
-                    /* wheel up */
+                    mouse_button.setScroll(event::MouseEvent::Scroll::Up);
                     break;
                 case XCB_BUTTON_INDEX_5:
-                    /* wheel down */
+                    mouse_button.setScroll(event::MouseEvent::Scroll::Down);
                     break;
                 default:
                     break;
@@ -162,13 +172,35 @@ void vke::detail::VKE_XCBWindow::_handle_events(xcb_generic_event_t *event)
         }
 
         case XCB_BUTTON_RELEASE: {
-            /* xcb_button_release_event_t *b = reinterpret_cast<xcb_button_release_event_t *>(event); */
+            const xcb_button_release_event_t *b = reinterpret_cast<xcb_button_release_event_t *>(event);
+            auto &mouse_button = event::MouseEvent::getInstance();
+
+            switch (b->detail) {
+                case XCB_BUTTON_INDEX_1:
+                    mouse_button.setButton(event::MouseEvent::Type::Left);
+                    break;
+                case XCB_BUTTON_INDEX_2:
+                    mouse_button.setButton(event::MouseEvent::Type::Middle);
+                    break;
+                case XCB_BUTTON_INDEX_3:
+                    mouse_button.setButton(event::MouseEvent::Type::Right);
+                    break;
+                default:
+                    mouse_button.setButton(event::MouseEvent::Type::None);
+                    break;
+            }
             break;
         }
 
         case XCB_MOTION_NOTIFY: {
-            /* xcb_motion_notify_event_t *m = reinterpret_cast<xcb_motion_notify_event_t *>(event); */
-            /* mouse position inside window */
+            const xcb_motion_notify_event_t *m = reinterpret_cast<xcb_motion_notify_event_t *>(event);
+            auto &mouse_event = event::MouseEvent::getInstance();
+
+            maths::Vector2f position;
+            position.x = static_cast<float>(m->event_x);
+            position.y = static_cast<float>(m->event_y);
+
+            mouse_event.setPosition(position);
             break;
         }
 
