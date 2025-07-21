@@ -71,7 +71,7 @@ static VkShaderModule _load_shader(const char *filename, VkDevice device)
  * getters
  */
 
-VkPipeline vke::VulkanShader::getPipeline() const
+VkPipeline &vke::VulkanShader::getPipeline()
 {
     return _pipeline;
 }

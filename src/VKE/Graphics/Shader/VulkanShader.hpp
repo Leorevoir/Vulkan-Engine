@@ -16,7 +16,7 @@ class VKE_API VulkanShader : public VulkanObject
         void update() override;
 
         /** getters */
-        VkPipeline getPipeline() const;
+        VkPipeline &getPipeline();
         const std::vector<VkPipelineShaderStageCreateInfo> &getShaderStages() const;
         VkCullModeFlags getCullMode() const;
         VkFrontFace getFrontFace() const;
