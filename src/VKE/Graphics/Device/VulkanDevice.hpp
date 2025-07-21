@@ -51,10 +51,11 @@ struct VKE_API VulkanDevice final {
         void flushCommandBuffer(VkCommandBuffer command_buffer, VkQueue queue, VkCommandPool pool, bool free = true);
         void flushCommandBuffer(VkCommandBuffer command_buffer, VkQueue queue, bool free = true);
         bool isExtensionSupported(std::string extension) const;
-        VkFormat getSupportedDepthFormat(bool check_sampling_support = false);
 
         operator VkDevice();
 };
+
+bool getSuportedDepthFormat(VkPhysicalDevice physical_device, VkFormat *depth_format);
 
 }// namespace priv
 

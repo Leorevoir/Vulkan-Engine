@@ -363,27 +363,37 @@ bool vke::priv::VulkanDevice::isExtensionSupported(std::string extension) const
     return std::find(_supportedExtensions.begin(), _supportedExtensions.end(), extension) != _supportedExtensions.end();
 }
 
-VkFormat vke::priv::VulkanDevice::getSupportedDepthFormat(bool check_sampling_support)
-{
-    const std::vector<VkFormat> depth_formats = {VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D32_SFLOAT, VK_FORMAT_D24_UNORM_S8_UINT, VK_FORMAT_D16_UNORM_S8_UINT,
-        VK_FORMAT_D16_UNORM};
-    for (const auto &format : depth_formats) {
-        VkFormatProperties format_properties;
-        vkGetPhysicalDeviceFormatProperties(_physicalDevice, format, &format_properties);
-        if (format_properties.optimalTilingFeatures & VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT) {
-            if (check_sampling_support) {
-                if (!(format_properties.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT)) {
-                    continue;
-                }
-            }
-            return format;
-        }
-    }
-    throw exception::RuntimeError("vke::priv::VulkanDevice::getSupportedDepthFormat",
-        "Failed to find a suitable depth format. Ensure that the physical device supports depth formats.");
-}
-
 vke::priv::VulkanDevice::operator VkDevice()
 {
     return _logicalDevice;
+}
+
+/**
+* get supported depth format
+*/
+
+bool vke::priv::getSuportedDepthFormat(VkPhysicalDevice physical_device, VkFormat *depth_format)
+{
+    // clang-format off
+    const std::vector<VkFormat> depth_formats = {
+        VK_FORMAT_D32_SFLOAT_S8_UINT,
+        VK_FORMAT_D32_SFLOAT,
+        VK_FORMAT_D24_UNORM_S8_UINT,
+        VK_FORMAT_D16_UNORM_S8_UINT,
+        VK_FORMAT_D16_UNORM
+    };
+
+    for (const auto &format:depth_formats) {
+        VkFormatProperties format_properties;
+
+        vkGetPhysicalDeviceFormatProperties(physical_device, format, &format_properties);
+
+        if (format_properties.optimalTilingFeatures & VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT) {
+            *depth_format = format;
+            return true;
+        }
+
+    }
+    return false;
+    // clang-format on
 }
