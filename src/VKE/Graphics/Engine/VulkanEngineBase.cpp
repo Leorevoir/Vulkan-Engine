@@ -566,7 +566,7 @@ void vke::priv::VulkanEngineBase::_acquire_frame()
     if (error == VK_SUBOPTIMAL_KHR || error == VK_ERROR_OUT_OF_DATE_KHR) {
         std::cout << "VulkanEngineBase::_acquire_frame: Swapchain out of date or suboptimal, resizing window..." << std::endl;
         _resize_window();
-        return;
+        return _acquire_frame();
     } else if (error != VK_SUCCESS) {
         throw vke::exception::RuntimeError("Vulkan fatal error", VKE_GET_ERROR_STRING(error), " file: ", __FILE__, ", line: ", __LINE__);
     }
@@ -584,7 +584,7 @@ void vke::priv::VulkanEngineBase::_submit_frame()
     if (error == VK_SUBOPTIMAL_KHR || error == VK_ERROR_OUT_OF_DATE_KHR) {
         std::cout << "VulkanEngineBase::_submit_frame: Swapchain out of date or suboptimal, resizing window..." << std::endl;
         _resize_window();
-        return;
+        return _submit_frame();
     } else if (error != VK_SUCCESS) {
         throw vke::exception::RuntimeError("Vulkan fatal error", VKE_GET_ERROR_STRING(error), " file: ", __FILE__, ", line: ", __LINE__);
     }
