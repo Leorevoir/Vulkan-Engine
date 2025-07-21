@@ -158,6 +158,7 @@ void vke::detail::VKE_XCBWindow::_handle_events(xcb_generic_event_t *event)
                 default:
                     break;
             }
+            break;
         }
 
         case XCB_BUTTON_RELEASE: {
