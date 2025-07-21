@@ -4,7 +4,6 @@
 #include "VKE/Graphics/Shader/UniformCamera.hpp"
 #include "VKE/Graphics/Shader/VulkanShader.hpp"
 #include "VKE/Meshes/MeshObject.hpp"
-#include "VKE/Scene/Camera/ThridPersonCamera.hpp"
 
 class Triangle : public vke::MeshObject
 {
@@ -25,7 +24,7 @@ class TriangleShader : public vke::VulkanShader
         void initialize() override;
 };
 
-class TriangleEngine : public vke::GameEngine, public vke::ThirdPersonCamera
+class TriangleEngine : public vke::GameEngine
 {
     public:
     protected:

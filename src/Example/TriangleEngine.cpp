@@ -75,9 +75,6 @@ void TriangleEngine::initialize()
     _triangle_shader->initialize();
 
     _triangle_uniform = vke::VulkanObject::Create<vke::UniformCamera>(context);
-    _triangle_uniform->setPosition(&_camera_position);
-    _triangle_uniform->setRotation(&_camera_rotation);
-    _triangle_uniform->setZoom(&_camera_zoom);
     _triangle_uniform->initialize();
 
     _descriptor_set->add(0, 0, &_triangle_uniform->getUniformBuffer()._descriptorInfo, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT);
