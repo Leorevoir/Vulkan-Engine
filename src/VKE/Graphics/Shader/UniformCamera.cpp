@@ -17,48 +17,25 @@ void vke::UniformCamera::initialize()
 
 void vke::UniformCamera::update()
 {
+    updateThirdPersonCamera();
+
     const f32 fov = VKEM_DEG2RAD(TEST_FOV);
     const f32 aspect_ratio = static_cast<f32>(_context->_screen_size->width) / static_cast<f32>(_context->_screen_size->height);
     const f32 near_plane = 0.001f;
     const f32 far_plane = 256.0f;
 
     _camera._projection = maths::perspective(fov, aspect_ratio, near_plane, far_plane);
-    _camera._view = maths::translate(maths::Matrix4f(1.f), maths::Vector3f(0.f, 0.f, -*_zoom));
+    _camera._view = maths::translate(maths::Matrix4f(1.f), maths::Vector3f(0.f, 0.f, -_camera_zoom));
 
-    maths::Matrix4f model = maths::translate(maths::Matrix4f(1.f), *_position);
+    maths::Matrix4f model = maths::translate(maths::Matrix4f(1.f), _camera_position);
 
-    model = maths::rotate(model, VKEM_DEG2RAD(-_rotation->x), maths::Vector3f(1.f, 0.f, 0.f));
-    model = maths::rotate(model, VKEM_DEG2RAD(_rotation->y), maths::Vector3f(0.f, 1.f, 0.f));
-    model = maths::rotate(model, VKEM_DEG2RAD(_rotation->z), maths::Vector3f(0.f, 0.f, 1.f));
+    model = maths::rotate(model, VKEM_DEG2RAD(-_camera_rotation.x), maths::Vector3f(1.f, 0.f, 0.f));
+    model = maths::rotate(model, VKEM_DEG2RAD(_camera_rotation.y), maths::Vector3f(0.f, 1.f, 0.f));
+    model = maths::rotate(model, VKEM_DEG2RAD(_camera_rotation.z), maths::Vector3f(0.f, 0.f, 1.f));
 
     _camera._model = model;
     _camera._normal = maths::inverseTranspose(_camera._view * model);
     std::memcpy(_uniform_buffer._mapped, &_camera, sizeof(_camera));
-}
-
-/**
- * setters
- */
-
-void vke::UniformCamera::setPosition(maths::Vector3f *position)
-{
-    if (position) {
-        _position = position;
-    }
-}
-
-void vke::UniformCamera::setRotation(maths::Vector3f *rotation)
-{
-    if (rotation) {
-        _rotation = rotation;
-    }
-}
-
-void vke::UniformCamera::setZoom(f32 *zoom)
-{
-    if (zoom) {
-        _zoom = zoom;
-    }
 }
 
 /**
