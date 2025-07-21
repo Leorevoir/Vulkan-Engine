@@ -29,20 +29,31 @@ void vke::GameEngine::stop()
 void vke::GameEngine::renderLoop()
 {
     _window->flush();
+
     while (_running) {
 
         if (_window->shouldClose()) {
             return stop();
         }
 
+        _window->pollEvents();
         renderFrame();
 
         //TODO: real timing bc this sucks
         std::this_thread::sleep_for(std::chrono::milliseconds(16));
     }
+
+    if (_device != VKE_NULLPTR) {
+        vkDeviceWaitIdle(_device);
+    }
+}
+
+void vke::GameEngine::draw()
+{
+    /* __draw__ */
 }
 
 void vke::GameEngine::update()
 {
-    _window->pollEvents();
+    /* __update__ */
 }
