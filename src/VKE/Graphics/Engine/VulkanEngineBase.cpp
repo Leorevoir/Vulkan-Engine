@@ -197,13 +197,13 @@ void vke::priv::VulkanEngineBase::_get_physical_device()
     vkGetPhysicalDeviceFeatures(_physical_device, &_physical_device_features);
     vkGetPhysicalDeviceMemoryProperties(_physical_device, &_physical_device_memory_properties);
 
-    // if (_physical_device_features.multiViewport) {
-    //     _enabled_features.multiViewport = VK_TRUE;
-    // }
-    // if (_physical_device_features.sampleRateShading) {
-    //     _enabled_features.sampleRateShading = VK_TRUE;
-    // }
-    // _enabled_features.fillModeNonSolid = _physical_device_features.fillModeNonSolid ? VK_TRUE : VK_FALSE;
+    if (_physical_device_features.multiViewport) {
+        _enabled_features.multiViewport = VK_TRUE;
+    }
+    if (_physical_device_features.sampleRateShading) {
+        _enabled_features.sampleRateShading = VK_TRUE;
+    }
+    _enabled_features.fillModeNonSolid = _physical_device_features.fillModeNonSolid ? VK_TRUE : VK_FALSE;
 
     getDeviceFeatures();
 
