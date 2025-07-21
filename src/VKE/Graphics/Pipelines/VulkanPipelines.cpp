@@ -1,6 +1,7 @@
 #include <VKE/Error.hpp>
 #include <VKE/Graphics/Pipelines/VulkanPipelines.hpp>
 #include <VKE/Types.hpp>
+#include <cassert>
 
 /**
  * helpers
@@ -58,6 +59,13 @@ void vke::priv::VulkanPipelines::createBase(const VkPipelineLayout &pipeline_lay
     _viewport_state.viewportCount = 5;
     _viewport_state.scissorCount = 5;
 
+    //////
+    // _viewport_state.viewportCount = 1;
+    // _viewport_state.scissorCount = 1;
+    // _viewport_state.pViewports = VKE_NULLPTR;
+    // _viewport_state.pScissors = VKE_NULLPTR;
+    //////
+
     _multisample_state.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
     _multisample_state.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
     _multisample_state.sampleShadingEnable = VK_TRUE;
@@ -95,12 +103,11 @@ void vke::priv::VulkanPipelines::createBase(const VkPipelineLayout &pipeline_lay
 }
 
 void vke::priv::VulkanPipelines::create(VulkanShader *shader, VkPolygonMode polygon_mode)
-
 {
-    auto shader_pipeline = shader->getPipeline();
-
-    VKE_SAFE_CLEAN(shader_pipeline, vkDestroyPipeline(_device, shader_pipeline, VKE_NULLPTR));
-
+    assert(shader != VKE_NULLPTR && "VulkanPipelines::create: shader is null");
+    if (shader->getPipeline()) {
+        vkDestroyPipeline(_device, shader->getPipeline(), VKE_NULLPTR);
+    }
     _rasterization_state.polygonMode = polygon_mode;
     _rasterization_state.cullMode = shader->getCullMode();
     _rasterization_state.frontFace = shader->getFrontFace();
@@ -108,40 +115,44 @@ void vke::priv::VulkanPipelines::create(VulkanShader *shader, VkPolygonMode poly
     if (shader->isDepthBiasEnabled()) {
         _rasterization_state.depthBiasEnable = VK_TRUE;
         _dynamic_state_enables.push_back(VK_DYNAMIC_STATE_DEPTH_BIAS);
-        _dynamic_state = _create_dynamic_state(_dynamic_state_enables.data(), static_cast<u32>(_dynamic_state_enables.size()));
+        _dynamic_state.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+        _dynamic_state.pDynamicStates = _dynamic_state_enables.data();
+        _dynamic_state.dynamicStateCount = static_cast<u32>(_dynamic_state_enables.size());
+        _dynamic_state.flags = 0;
     }
-
-    auto shader_stages = shader->getShaderStages();
 
     if (shader->isOneStage()) {
         _pipeline_info.stageCount = 1;
         _color_blend_state.attachmentCount = 0;
-        _shader_stages[0] = shader_stages[0];
+        _shader_stages[0] = shader->getShaderStages()[0];
     } else {
-        _shader_stages[0] = shader_stages[0];
-        _shader_stages[1] = shader_stages[1];
+        _shader_stages[0] = shader->getShaderStages()[0];
+        _shader_stages[1] = shader->getShaderStages()[1];
     }
 
     if (shader->isInstanceShader()) {
         _input_state = shader->getVertexInputState();
     }
 
-    VKE_ASSERT(vkCreateGraphicsPipelines(_device, _pipeline_cache, 1, &_pipeline_info, VKE_NULLPTR, &shader_pipeline));
+    VKE_ASSERT(vkCreateGraphicsPipelines(_device, _pipeline_cache, 1, &_pipeline_info, VKE_NULLPTR, &(shader->getPipeline())));
 }
 
 void vke::priv::VulkanPipelines::create(VulkanShader *shader, VkRenderPass render_pass, VkPolygonMode polygon_mode)
 {
+    assert(shader != VKE_NULLPTR && "VulkanPipelines::create: shader is null");
     _pipeline_info.renderPass = render_pass;
     create(shader, polygon_mode);
 }
 
 void vke::priv::VulkanPipelines::create(std::shared_ptr<VulkanShader> shader, VkPolygonMode polygon_mode)
 {
+    assert(shader != VKE_NULLPTR && "VulkanPipelines::create: shader is null");
     create(shader.get(), polygon_mode);
 }
 
 void vke::priv::VulkanPipelines::create(std::shared_ptr<VulkanShader> shader, VkRenderPass render_pass, VkPolygonMode polygon_mode)
 {
+    assert(shader != VKE_NULLPTR && "VulkanPipelines::create: shader is null");
     create(shader.get(), render_pass, polygon_mode);
 }
 
