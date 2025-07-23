@@ -53,7 +53,6 @@ void TriangleShader::initialize()
 
     _shader_stages.push_back(_load(vertex_shader_path, VK_SHADER_STAGE_VERTEX_BIT));
     _shader_stages.push_back(_load(fragment_shader_path, VK_SHADER_STAGE_FRAGMENT_BIT));
-    std::cout << "shader initialized and pushed" << std::endl;
 }
 
 /**
@@ -70,10 +69,10 @@ void TriangleEngine::initialize()
     _triangle_shader = vke::VulkanObject::Create<TriangleShader>(context);
     _triangle_shader->initialize();
 
-    _triangle_uniform = vke::VulkanObject::Create<vke::UniformCamera>(context);
-    _triangle_uniform->initialize();
+    // _triangle_uniform = vke::VulkanObject::Create<vke::UniformCamera>(context);
+    // _triangle_uniform->initialize();
 
-    _descriptor_set->add(0, 0, &_triangle_uniform->getUniformBuffer()._descriptorInfo, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT);
+    // _descriptor_set->add(0, 0, &_triangle_uniform->getUniformBuffer()._descriptorInfo, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT);
     _descriptor_set->generate(&_pipeline_layout);
 
     _pipelines->createBase(_pipeline_layout, _render_pass);
@@ -82,7 +81,7 @@ void TriangleEngine::initialize()
 
 void TriangleEngine::update()
 {
-    _triangle_uniform->update();
+    // _triangle_uniform->update();
 }
 
 void TriangleEngine::drawObjects(VkCommandBuffer &cmd)
