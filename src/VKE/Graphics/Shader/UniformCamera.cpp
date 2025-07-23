@@ -10,14 +10,14 @@
 
 vke::UniformCamera::~UniformCamera()
 {
-    _uniform_buffer.destroy();
+    _buffer.destroy();
 }
 
 void vke::UniformCamera::initialize()
 {
-    VKE_ASSERT(_context->_device->createBuffer(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-        &_uniform_buffer, sizeof(_camera), &_camera));
-    VKE_ASSERT(_uniform_buffer.map());
+    VKE_ASSERT(_context->_device->createBuffer(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &_buffer,
+        sizeof(_camera), &_camera));
+    VKE_ASSERT(_buffer.map());
     update();
 }
 
@@ -45,7 +45,7 @@ void vke::UniformCamera::updateCameraMatrix()
     _camera._model = maths::rotate(_camera._model, maths::radians(_camera_rotation.z), maths::Vector3f(0.f, 0.f, 1.f));
 
     _camera._normal = maths::inverseTranspose(_camera._view * _camera._model);
-    std::memcpy(_uniform_buffer._mapped, &_camera, sizeof(_camera));
+    std::memcpy(_buffer._mapped, &_camera, sizeof(_camera));
 }
 
 /**
