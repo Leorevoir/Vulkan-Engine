@@ -13,7 +13,7 @@ void vke::VulkanBuffer::unmap()
 {
     if (_mapped) {
         vkUnmapMemory(_device, _memory);
-        _mapped = VKE_NULL_PTR;
+        _mapped = VKE_NULLPTR;
     }
 }
 
@@ -62,11 +62,11 @@ void vke::VulkanBuffer::destroy()
 {
     if (_buffer) {
         vkDestroyBuffer(_device, _buffer, nullptr);
-        _buffer = VKE_NULL_PTR;
+        _buffer = VKE_NULLPTR;
     }
     if (_memory) {
         vkFreeMemory(_device, _memory, nullptr);
-        _memory = VKE_NULL_PTR;
+        _memory = VKE_NULLPTR;
     }
     _size = 0;
     _alignment = 0;

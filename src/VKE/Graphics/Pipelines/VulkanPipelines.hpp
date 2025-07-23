@@ -25,11 +25,11 @@ class VKE_API VulkanPipelines
         void create(std::shared_ptr<VulkanShader> shader, VkRenderPass render_pass, VkPolygonMode polygon_mode);
 
     private:
-        VkDevice &_device;
+        VkDevice _device;
 
-        VkGraphicsPipelineCreateInfo _pipeline_info;
-        VkPipelineVertexInputStateCreateInfo _input_state;
-        VkPipelineCache _pipeline_cache;
+        VkGraphicsPipelineCreateInfo _pipeline_info = {};
+        VkPipelineVertexInputStateCreateInfo _input_state = {};
+        VkPipelineCache _pipeline_cache = {};
 
         VkPipelineInputAssemblyStateCreateInfo _input_assembly_state = {};
         VkPipelineRasterizationStateCreateInfo _rasterization_state = {};

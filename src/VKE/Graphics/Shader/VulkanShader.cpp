@@ -7,17 +7,12 @@
 * public
 */
 
-vke::VulkanShader::VulkanShader(VulkanContext *context) : VulkanObject(context)
-{
-    /* __ctor__ */
-}
-
 vke::VulkanShader::~VulkanShader()
 {
-    VKE_SAFE_CLEAN(_pipeline, vkDestroyPipeline(_context->getDevice(), _pipeline, VKE_NULL_PTR));
+    VKE_SAFE_CLEAN(_pipeline, vkDestroyPipeline(_context->getDevice(), _pipeline, VKE_NULLPTR));
 
     for (auto &shader : _shader_modules) {
-        VKE_SAFE_CLEAN(shader, vkDestroyShaderModule(_context->getDevice(), shader, VKE_NULL_PTR));
+        VKE_SAFE_CLEAN(shader, vkDestroyShaderModule(_context->getDevice(), shader, VKE_NULLPTR));
     }
 }
 
@@ -30,33 +25,45 @@ void vke::VulkanShader::update()
  * helpers
  */
 
-static inline VkShaderModule _load_shader(const char *filename, VkDevice device)
+static VkShaderModule _load_shader(const char *filename, VkDevice device)
 {
-    std::ifstream stream(filename, std::ios::binary | std::ios::in | std::ios::ate);
+    std::ifstream stream(filename, std::ios::binary | std::ios::ate);
 
     if (!stream.is_open()) {
         throw vke::exception::RuntimeError("VulkanShader", "Could not open shader file: ", filename);
     }
-    const u32 size = static_cast<u32>(stream.tellg());
 
-    if (size % 4 != 0) {
-        throw vke::exception::RuntimeError("VulkanShader", "SPIR-V file size is not a multiple of 4 bytes: ", filename);
+    const std::streamsize size = stream.tellg();
+
+    if (size <= 0) {
+        throw vke::exception::RuntimeError("VulkanShader", "Shader file empty or invalid: ", filename);
     }
 
     stream.seekg(0, std::ios::beg);
-    stream.seekg(0, std::ios::beg);
-    std::vector<u32> code(size / 4);
-    stream.read(reinterpret_cast<char *>(code.data()), size);
+
+    if (size % 4 != 0) {
+        throw vke::exception::RuntimeError("VulkanShader", "SPIR-V file size not multiple of 4: ", filename);
+    }
+
+    std::vector<u32> code(static_cast<u32>(size / 4));
+
+    if (!stream.read(reinterpret_cast<char *>(code.data()), size)) {
+        throw vke::exception::RuntimeError("VulkanShader", "Failed to read full shader file: ", filename);
+    }
     stream.close();
 
-    VkShaderModule shader_module = {};
     VkShaderModuleCreateInfo module_create_info{};
-
     module_create_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-    module_create_info.codeSize = code.size();
+    module_create_info.codeSize = static_cast<u32>(size);
     module_create_info.pCode = code.data();
 
-    VKE_ASSERT(vkCreateShaderModule(device, &module_create_info, nullptr, &shader_module));
+    VkShaderModule shader_module;
+    const VkResult res = vkCreateShaderModule(device, &module_create_info, nullptr, &shader_module);
+
+    if (res != VK_SUCCESS) {
+        throw vke::exception::RuntimeError("VulkanShader", "Failed to create shader module: ", filename);
+    }
+
     return shader_module;
 }
 
@@ -69,7 +76,7 @@ VkPipeline &vke::VulkanShader::getPipeline()
     return _pipeline;
 }
 
-std::vector<VkPipelineShaderStageCreateInfo> &vke::VulkanShader::getShaderStages()
+const std::vector<VkPipelineShaderStageCreateInfo> &vke::VulkanShader::getShaderStages() const
 {
     return _shader_stages;
 }
@@ -140,13 +147,17 @@ void vke::VulkanShader::setOneStage(bool one_stage)
 
 VkPipelineShaderStageCreateInfo vke::VulkanShader::_load(const std::string &filename, const VkShaderStageFlagBits &stage)
 {
+    if (_context == nullptr) {
+        throw vke::exception::RuntimeError("VulkanShader", "Context is not set. Call setContext() before loading shaders.");
+    }
+
     VkPipelineShaderStageCreateInfo shader_stage_info = {};
 
     shader_stage_info.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     shader_stage_info.stage = stage;
     shader_stage_info.module = _load_shader(filename.c_str(), _context->getDevice());
     shader_stage_info.pName = "main";
-    assert(shader_stage_info.module != VKE_NULL_PTR);
+    assert(shader_stage_info.module != VKE_NULLPTR);
     _shader_modules.push_back(shader_stage_info.module);
     return shader_stage_info;
 }

@@ -8,3 +8,13 @@ vke::VulkanContext::VulkanContext(priv::VulkanDevice *device, maths::Vector2u *s
 {
     /* __ctor__ */
 }
+
+VkDevice &vke::VulkanContext::getDevice()
+{
+    return _device->_logicalDevice;
+}
+
+VkPhysicalDevice &vke::VulkanContext::getPhysicalDevice()
+{
+    return _device->_physicalDevice;
+}

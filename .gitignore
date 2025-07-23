@@ -68,3 +68,4 @@ asm_offset
 
 .clang-format
 console.log
+assets/shaders/cache

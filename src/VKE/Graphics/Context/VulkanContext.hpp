@@ -10,25 +10,19 @@ namespace vke {
 
 struct VKE_API VulkanContext {
 
-        priv::VulkanDevice *_device = VKE_NULL_PTR;
-        VkCommandBuffer _copy_cmd = VKE_NULL_PTR;
-        VkCommandPool _cmd_pool = VKE_NULL_PTR;
-        VkPipelineLayout *_pipeline_layout = VKE_NULL_PTR;
-        VkPipelineCache _pipeline_cache = VKE_NULL_PTR;
-        VkRenderPass _render_pass = VKE_NULL_PTR;
-        VkQueue _queue = VKE_NULL_PTR;
+        priv::VulkanDevice *_device = VKE_NULLPTR;
+        VkCommandBuffer _copy_cmd = VKE_NULLPTR;
+        VkCommandPool _cmd_pool = VKE_NULLPTR;
+        VkPipelineLayout *_pipeline_layout = VKE_NULLPTR;
+        VkPipelineCache _pipeline_cache = VKE_NULLPTR;
+        VkRenderPass _render_pass = VKE_NULLPTR;
+        VkQueue _queue = VKE_NULLPTR;
         maths::Vector2u *_screen_size;
 
         explicit VulkanContext(priv::VulkanDevice *device, maths::Vector2u *screen_size);
 
-        inline VkDevice &getDevice()
-        {
-            return _device->_logicalDevice;
-        }
-        inline VkPhysicalDevice &getPhysicalDevice()
-        {
-            return _device->_physicalDevice;
-        }
+        VkDevice &getDevice();
+        VkPhysicalDevice &getPhysicalDevice();
 };
 
 }// namespace vke

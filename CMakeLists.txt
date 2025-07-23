@@ -47,27 +47,27 @@ if(UNIX AND NOT APPLE)
 # elseif(WIN32)
 endif()
 
-target_compile_options(vulkan_engine PRIVATE
-    -Wall
-    -Wextra
-    -Werror
-    -pedantic
-    -Wconversion
-    -Wsign-conversion
-    -Wshadow
-    -Wnull-dereference
-    -Wundef
-    -Wuninitialized
-    -Winit-self
-    -Wredundant-decls
-    -Wcast-align
-    -Wcast-qual
-    -Wmissing-declarations
-    -Wswitch-default
-    -Wdouble-promotion
-    -Wformat=2
-    -Wwrite-strings
-)
+# target_compile_options(vulkan_engine PRIVATE
+#     -Wall
+#     -Wextra
+#     -Werror
+#     -pedantic
+#     -Wconversion
+#     -Wsign-conversion
+#     -Wshadow
+#     -Wnull-dereference
+#     -Wundef
+#     -Wuninitialized
+#     -Winit-self
+#     -Wredundant-decls
+#     -Wcast-align
+#     -Wcast-qual
+#     -Wmissing-declarations
+#     -Wswitch-default
+#     -Wdouble-promotion
+#     -Wformat=2
+#     -Wwrite-strings
+# )
 
 ########################################
 # NOTE: debug

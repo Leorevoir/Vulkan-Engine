@@ -19,8 +19,8 @@ class VKE_API VulkanDescriptorSet final
                 u32 _binding;
                 u32 _index;
                 Type _type;
-                VkDescriptorImageInfo *_image_info = VKE_NULL_PTR;
-                VkDescriptorBufferInfo *_buffer_info = VKE_NULL_PTR;
+                VkDescriptorImageInfo *_image_info = VKE_NULLPTR;
+                VkDescriptorBufferInfo *_buffer_info = VKE_NULLPTR;
                 VkDescriptorType _descriptor_type;
                 VkShaderStageFlags _stage_flags;
         };
@@ -33,9 +33,9 @@ class VKE_API VulkanDescriptorSet final
         u32 getSize() const;
 
     private:
-        VkDevice _device = VKE_NULL_PTR;
-        VkDescriptorPool _pool = VKE_NULL_PTR;
-        VkDescriptorSetLayout _layout = VKE_NULL_PTR;
+        VkDevice _device = VKE_NULLPTR;
+        VkDescriptorPool _pool = VKE_NULLPTR;
+        VkDescriptorSetLayout _layout = VKE_NULLPTR;
 
         std::vector<VkDescriptorSet> _sets;
         std::vector<Info> _infos;

@@ -1,12 +1,9 @@
-#ifndef VKE_USE_PLATFORM_XCB_KHR
-#define VKE_USE_PLATFORM_XCB_KHR
-#endif
-
 #if defined(VKE_USE_PLATFORM_XCB_KHR)
 
-#include <VKE/Error.hpp>
-#include <VKE/Memory.hpp>
-#include <VKE/Window/Platform/Xcb.hpp>
+    #include <VKE/Error.hpp>
+    #include <VKE/Memory.hpp>
+    #include <VKE/Systems/MouseEvent.hpp>
+    #include <VKE/Window/Platform/Xcb.hpp>
 
 /**
  * helpers
@@ -55,17 +52,22 @@ void vke::detail::VKE_XCBWindow::flush()
     xcb_flush(_connection);
 }
 
+const char *vke::detail::VKE_XCBWindow::getVulkanExtension() const
+{
+    return VK_KHR_XCB_SURFACE_EXTENSION_NAME;
+}
+
 void vke::detail::VKE_XCBWindow::createVulkanSurface(VkInstance instance, VkSurfaceKHR &out_surface)
 {
     VkXcbSurfaceCreateInfoKHR surface_info = {
         .sType = VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR,
-        .pNext = VKE_NULL_PTR,
+        .pNext = VKE_NULLPTR,
         .flags = 0,
         .connection = _connection,
         .window = _window,
     };
 
-    VKE_ASSERT(vkCreateXcbSurfaceKHR(instance, &surface_info, VKE_NULL_PTR, &out_surface));
+    VKE_ASSERT(vkCreateXcbSurfaceKHR(instance, &surface_info, VKE_NULLPTR, &out_surface));
 }
 
 /**
@@ -146,27 +148,59 @@ void vke::detail::VKE_XCBWindow::_handle_events(xcb_generic_event_t *event)
 
         case XCB_BUTTON_PRESS: {
             const xcb_button_press_event_t *b = reinterpret_cast<xcb_button_press_event_t *>(event);
+            auto &mouse_button = event::MouseEvent::getInstance();
 
             switch (b->detail) {
+                case XCB_BUTTON_INDEX_1:
+                    mouse_button.setButton(event::MouseEvent::Type::Left);
+                case XCB_BUTTON_INDEX_2:
+                    mouse_button.setButton(event::MouseEvent::Type::Middle);
+                    break;
+                case XCB_BUTTON_INDEX_3:
+                    mouse_button.setButton(event::MouseEvent::Type::Right);
+                    break;
                 case XCB_BUTTON_INDEX_4:
-                    /* wheel up */
+                    mouse_button.setScroll(event::MouseEvent::Scroll::Up);
                     break;
                 case XCB_BUTTON_INDEX_5:
-                    /* wheel down */
+                    mouse_button.setScroll(event::MouseEvent::Scroll::Down);
                     break;
                 default:
                     break;
             }
+            break;
         }
 
         case XCB_BUTTON_RELEASE: {
-            /* xcb_button_release_event_t *b = reinterpret_cast<xcb_button_release_event_t *>(event); */
+            const xcb_button_release_event_t *b = reinterpret_cast<xcb_button_release_event_t *>(event);
+            auto &mouse_button = event::MouseEvent::getInstance();
+
+            switch (b->detail) {
+                case XCB_BUTTON_INDEX_1:
+                    mouse_button.setButton(event::MouseEvent::Type::Left);
+                    break;
+                case XCB_BUTTON_INDEX_2:
+                    mouse_button.setButton(event::MouseEvent::Type::Middle);
+                    break;
+                case XCB_BUTTON_INDEX_3:
+                    mouse_button.setButton(event::MouseEvent::Type::Right);
+                    break;
+                default:
+                    mouse_button.setButton(event::MouseEvent::Type::None);
+                    break;
+            }
             break;
         }
 
         case XCB_MOTION_NOTIFY: {
-            /* xcb_motion_notify_event_t *m = reinterpret_cast<xcb_motion_notify_event_t *>(event); */
-            /* mouse position inside window */
+            const xcb_motion_notify_event_t *m = reinterpret_cast<xcb_motion_notify_event_t *>(event);
+            auto &mouse_event = event::MouseEvent::getInstance();
+
+            maths::Vector2f position;
+            position.x = static_cast<float>(m->event_x);
+            position.y = static_cast<float>(m->event_y);
+
+            mouse_event.setPosition(position);
             break;
         }
 

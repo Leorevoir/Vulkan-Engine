@@ -8,7 +8,7 @@
 
 vke::priv::VulkanDevice::VulkanDevice(VkPhysicalDevice physical_device)
 {
-    assert(physical_device != VKE_NULL_PTR);
+    assert(physical_device != VKE_NULLPTR);
     _physicalDevice = physical_device;
     vkGetPhysicalDeviceProperties(_physicalDevice, &_properties);
     vkGetPhysicalDeviceFeatures(_physicalDevice, &_features);
@@ -16,18 +16,18 @@ vke::priv::VulkanDevice::VulkanDevice(VkPhysicalDevice physical_device)
 
     uint32_t queue_family_count = 0;
 
-    vkGetPhysicalDeviceQueueFamilyProperties(_physicalDevice, &queue_family_count, VKE_NULL_PTR);
+    vkGetPhysicalDeviceQueueFamilyProperties(_physicalDevice, &queue_family_count, VKE_NULLPTR);
     assert(queue_family_count > 0);
     _queueFamilyProperties.resize(queue_family_count);
     vkGetPhysicalDeviceQueueFamilyProperties(_physicalDevice, &queue_family_count, _queueFamilyProperties.data());
 
     u32 extension_count = 0;
 
-    vkEnumerateDeviceExtensionProperties(_physicalDevice, VKE_NULL_PTR, &extension_count, VKE_NULL_PTR);
+    vkEnumerateDeviceExtensionProperties(_physicalDevice, VKE_NULLPTR, &extension_count, VKE_NULLPTR);
     if (extension_count > 0) {
         std::vector<VkExtensionProperties> extensions(extension_count);
 
-        if (vkEnumerateDeviceExtensionProperties(_physicalDevice, VKE_NULL_PTR, &extension_count, extensions.data()) == VK_SUCCESS) {
+        if (vkEnumerateDeviceExtensionProperties(_physicalDevice, VKE_NULLPTR, &extension_count, extensions.data()) == VK_SUCCESS) {
 
             for (const auto &ext : extensions) {
                 _supportedExtensions.push_back(ext.extensionName);
@@ -39,12 +39,12 @@ vke::priv::VulkanDevice::VulkanDevice(VkPhysicalDevice physical_device)
 vke::priv::VulkanDevice::~VulkanDevice()
 {
     if (_commandPool) {
-        vkDestroyCommandPool(_logicalDevice, _commandPool, VKE_NULL_PTR);
-        _commandPool = VKE_NULL_PTR;
+        vkDestroyCommandPool(_logicalDevice, _commandPool, VKE_NULLPTR);
+        _commandPool = VKE_NULLPTR;
     }
     if (_logicalDevice) {
-        vkDestroyDevice(_logicalDevice, VKE_NULL_PTR);
-        _logicalDevice = VKE_NULL_PTR;
+        vkDestroyDevice(_logicalDevice, VKE_NULLPTR);
+        _logicalDevice = VKE_NULLPTR;
     }
 }
 
@@ -170,7 +170,7 @@ VkResult vke::priv::VulkanDevice::createLogicalDevice(VkPhysicalDeviceFeatures e
         physicalDeviceFeatures2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
         physicalDeviceFeatures2.features = enabled_features;
         physicalDeviceFeatures2.pNext = next_chain;
-        deviceCreateInfo.pEnabledFeatures = VKE_NULL_PTR;
+        deviceCreateInfo.pEnabledFeatures = VKE_NULLPTR;
         deviceCreateInfo.pNext = &physicalDeviceFeatures2;
     }
 
@@ -184,7 +184,7 @@ VkResult vke::priv::VulkanDevice::createLogicalDevice(VkPhysicalDeviceFeatures e
         deviceCreateInfo.ppEnabledExtensionNames = deviceExtensions.data();
     }
 
-    const VkResult result = vkCreateDevice(_physicalDevice, &deviceCreateInfo, VKE_NULL_PTR, &_logicalDevice);
+    const VkResult result = vkCreateDevice(_physicalDevice, &deviceCreateInfo, VKE_NULLPTR, &_logicalDevice);
 
     if (result == VK_SUCCESS) {
         _commandPool = createCommandPool(_queueFamilyIndices.graphics);
@@ -196,12 +196,12 @@ VkResult vke::priv::VulkanDevice::createLogicalDevice(VkPhysicalDeviceFeatures e
 }
 
 VkResult vke::priv::VulkanDevice::createBuffer(VkBufferUsageFlags usage_flags, VkMemoryPropertyFlags memory_property_flags, VkDeviceSize size, VkBuffer *buffer,
-    VkDeviceMemory *memory, void *data)
+    VkDeviceMemory *memory, const void *data)
 {
     VkBufferCreateInfo buffer_create_info = helper::create_buffer_info(usage_flags, size);
 
     buffer_create_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-    VKE_ASSERT(vkCreateBuffer(_logicalDevice, &buffer_create_info, VKE_NULL_PTR, buffer));
+    VKE_ASSERT(vkCreateBuffer(_logicalDevice, &buffer_create_info, VKE_NULLPTR, buffer));
 
     VkMemoryRequirements mem_reqs;
     VkMemoryAllocateInfo mem_alloc = {};
@@ -211,9 +211,9 @@ VkResult vke::priv::VulkanDevice::createBuffer(VkBufferUsageFlags usage_flags, V
     vkGetBufferMemoryRequirements(_logicalDevice, *buffer, &mem_reqs);
     mem_alloc.allocationSize = mem_reqs.size;
     mem_alloc.memoryTypeIndex = getMemoryType(mem_reqs.memoryTypeBits, memory_property_flags);
-    VKE_ASSERT(vkAllocateMemory(_logicalDevice, &mem_alloc, VKE_NULL_PTR, memory));
+    VKE_ASSERT(vkAllocateMemory(_logicalDevice, &mem_alloc, VKE_NULLPTR, memory));
 
-    if (data != VKE_NULL_PTR) {
+    if (data != VKE_NULLPTR) {
         void *mapped;
         VKE_ASSERT(vkMapMemory(_logicalDevice, *memory, 0, size, 0, &mapped));
         memory::copy(mapped, data, size);
@@ -236,13 +236,13 @@ VkResult vke::priv::VulkanDevice::createBuffer(VkBufferUsageFlags usage_flags, V
 }
 
 VkResult vke::priv::VulkanDevice::createBuffer(VkBufferUsageFlags usage_flags, VkMemoryPropertyFlags memory_property_flags, VulkanBuffer *buffer, VkDeviceSize size,
-    void *data)
+    const void *data)
 {
     buffer->_device = _logicalDevice;
 
     VkBufferCreateInfo buffer_create_info = helper::create_buffer_info(usage_flags, size);
 
-    VKE_ASSERT(vkCreateBuffer(_logicalDevice, &buffer_create_info, VKE_NULL_PTR, &buffer->_buffer));
+    VKE_ASSERT(vkCreateBuffer(_logicalDevice, &buffer_create_info, VKE_NULLPTR, &buffer->_buffer));
 
     VkMemoryRequirements mem_reqs;
     VkMemoryAllocateInfo mem_alloc = {};
@@ -252,14 +252,14 @@ VkResult vke::priv::VulkanDevice::createBuffer(VkBufferUsageFlags usage_flags, V
     vkGetBufferMemoryRequirements(_logicalDevice, buffer->_buffer, &mem_reqs);
     mem_alloc.allocationSize = mem_reqs.size;
     mem_alloc.memoryTypeIndex = getMemoryType(mem_reqs.memoryTypeBits, memory_property_flags);
-    VKE_ASSERT(vkAllocateMemory(_logicalDevice, &mem_alloc, VKE_NULL_PTR, &buffer->_memory));
+    VKE_ASSERT(vkAllocateMemory(_logicalDevice, &mem_alloc, VKE_NULLPTR, &buffer->_memory));
 
     buffer->_alignment = mem_reqs.alignment;
     buffer->_size = size;
     buffer->_usageFlags = usage_flags;
     buffer->_memoryPropertyFlags = memory_property_flags;
 
-    if (data != VKE_NULL_PTR) {
+    if (data != VKE_NULLPTR) {
         VKE_ASSERT(buffer->map());
         memory::copy(buffer->_mapped, data, size);
         if ((memory_property_flags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) == 0)
@@ -298,9 +298,9 @@ VkCommandPool vke::priv::VulkanDevice::createCommandPool(u32 queue_family_index,
     pool_info.queueFamilyIndex = queue_family_index;
     pool_info.flags = flags;
 
-    VkCommandPool command_pool = VKE_NULL_PTR;
+    VkCommandPool command_pool = VKE_NULLPTR;
 
-    VKE_ASSERT(vkCreateCommandPool(_logicalDevice, &pool_info, VKE_NULL_PTR, &command_pool));
+    VKE_ASSERT(vkCreateCommandPool(_logicalDevice, &pool_info, VKE_NULLPTR, &command_pool));
     return command_pool;
 }
 
@@ -325,7 +325,7 @@ VkCommandBuffer vke::priv::VulkanDevice::createCommandBuffer(VkCommandBufferLeve
 
 void vke::priv::VulkanDevice::flushCommandBuffer(VkCommandBuffer command_buffer, VkQueue queue, VkCommandPool pool, bool free)
 {
-    if (command_buffer == VKE_NULL_PTR) {
+    if (command_buffer == VKE_NULLPTR) {
         return;
     }
 
@@ -344,10 +344,10 @@ void vke::priv::VulkanDevice::flushCommandBuffer(VkCommandBuffer command_buffer,
 
     VkFence fence;
 
-    VKE_ASSERT(vkCreateFence(_logicalDevice, &fence_info, VKE_NULL_PTR, &fence));
+    VKE_ASSERT(vkCreateFence(_logicalDevice, &fence_info, VKE_NULLPTR, &fence));
     VKE_ASSERT(vkQueueSubmit(queue, 1, &submit_info, fence));
     VKE_ASSERT(vkWaitForFences(_logicalDevice, 1, &fence, VK_TRUE, VKE_FENCE_TIMEOUT));
-    vkDestroyFence(_logicalDevice, fence, VKE_NULL_PTR);
+    vkDestroyFence(_logicalDevice, fence, VKE_NULLPTR);
     if (free) {
         vkFreeCommandBuffers(_logicalDevice, pool, 1, &command_buffer);
     }
@@ -363,27 +363,37 @@ bool vke::priv::VulkanDevice::isExtensionSupported(std::string extension) const
     return std::find(_supportedExtensions.begin(), _supportedExtensions.end(), extension) != _supportedExtensions.end();
 }
 
-VkFormat vke::priv::VulkanDevice::getSupportedDepthFormat(bool check_sampling_support)
-{
-    const std::vector<VkFormat> depth_formats = {VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D32_SFLOAT, VK_FORMAT_D24_UNORM_S8_UINT, VK_FORMAT_D16_UNORM_S8_UINT,
-        VK_FORMAT_D16_UNORM};
-    for (const auto &format : depth_formats) {
-        VkFormatProperties format_properties;
-        vkGetPhysicalDeviceFormatProperties(_physicalDevice, format, &format_properties);
-        if (format_properties.optimalTilingFeatures & VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT) {
-            if (check_sampling_support) {
-                if (!(format_properties.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT)) {
-                    continue;
-                }
-            }
-            return format;
-        }
-    }
-    throw exception::RuntimeError("vke::priv::VulkanDevice::getSupportedDepthFormat",
-        "Failed to find a suitable depth format. Ensure that the physical device supports depth formats.");
-}
-
 vke::priv::VulkanDevice::operator VkDevice()
 {
     return _logicalDevice;
+}
+
+/**
+* get supported depth format
+*/
+
+bool vke::priv::getSuportedDepthFormat(VkPhysicalDevice physical_device, VkFormat *depth_format)
+{
+    // clang-format off
+    const std::vector<VkFormat> depth_formats = {
+        VK_FORMAT_D32_SFLOAT_S8_UINT,
+        VK_FORMAT_D32_SFLOAT,
+        VK_FORMAT_D24_UNORM_S8_UINT,
+        VK_FORMAT_D16_UNORM_S8_UINT,
+        VK_FORMAT_D16_UNORM
+    };
+
+    for (const auto &format:depth_formats) {
+        VkFormatProperties format_properties;
+
+        vkGetPhysicalDeviceFormatProperties(physical_device, format, &format_properties);
+
+        if (format_properties.optimalTilingFeatures & VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT) {
+            *depth_format = format;
+            return true;
+        }
+
+    }
+    return false;
+    // clang-format on
 }

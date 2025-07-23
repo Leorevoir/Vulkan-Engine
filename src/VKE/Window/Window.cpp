@@ -41,6 +41,11 @@ const vke::maths::Vector2u &vke::Window::getSize() const
     return _vk_backend->_size;
 }
 
+const char *vke::Window::getVulkanExtension() const
+{
+    return _vk_backend->getVulkanExtension();
+}
+
 void vke::Window::pollEvents()
 {
     _vk_backend->event();

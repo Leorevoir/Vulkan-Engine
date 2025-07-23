@@ -11,6 +11,13 @@ class VKE_API GameEngine : public priv::VulkanEngineBase
         GameEngine() = default;
         virtual ~GameEngine() = default;
 
+        void initialize() override;
+
+        void start() override;
+        void stop();
+
+        void renderLoop();
+        void draw() override;
         void update() override;
 
     private:

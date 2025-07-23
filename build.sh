@@ -24,32 +24,16 @@ function _info()
     echo -e "${ORG}[🚧] RUNNING:\t${RST} ${ILC}$1${RST}"
 }
 
-function _run_compression()
-{
-    if ! { command -v python3 > /dev/null; } 2>&1; then
-        _error "command 'python3' not found" "please install 'python3' or 'nix develop' 🤓"
-    fi
-    _info "command 'python3' found, running extraction script..."
-    if ! python3 script/compression.py unzip assets/models/models.zip assets/models; then
-        _error "script/compression.py error" "failed to run extraction script for assets/models"
-    fi
-    if ! python3 script/compression.py unzip assets/textures/textures.zip assets/textures; then
-        _error "script/compression.py error" "failed to run extraction script for assets/textures"
-    fi
-    _success "extraction script completed successfully"
-}
-
 function _build_shader_cache()
 {
     _info "compiling shaders to SPIR-V..."
-    find ./assets/shaders/ -type f \( -name "*.frag" -o -name "*.vert" -o -name "*.comp" \) \
-    | parallel --eta '
-        ext="{= s:.*\.(frag|vert)$:\1: =}";
-        base=$(basename {} .$ext);
-        out=${base}_${ext}.spv;
-        echo "Compiling {} -> $out";
-        glslangValidator -V {} -o $out
-    '
+
+    cd ./assets/shaders || _error "cd failed"
+    if ! make -j $(nproc) ; then
+        _error "shader compilation error" "failed to compile shaders to SPIR-V"
+    fi
+    cd ../.. || _error "cd failed"
+
     _success "shaders compiled to SPIR-V !"
 }
 

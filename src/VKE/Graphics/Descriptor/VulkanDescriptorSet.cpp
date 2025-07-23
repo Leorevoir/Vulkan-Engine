@@ -1,7 +1,6 @@
 #include <VKE/Error.hpp>
 #include <VKE/Graphics/Descriptor/VulkanDescriptorSet.hpp>
-
-#define VKE_MATRIX_4F_SIZE 64
+#include <VKE/Maths/Matrix.hpp>
 
 /**
 * public
@@ -18,8 +17,8 @@ vke::priv::VulkanDescriptorSet::~VulkanDescriptorSet()
     for (auto &set : _sets) {
         VKE_SAFE_CLEAN(set, vkFreeDescriptorSets(_device, _pool, 1, &set));
     }
-    VKE_SAFE_CLEAN(_pool, vkDestroyDescriptorPool(_device, _pool, VKE_NULL_PTR));
-    VKE_SAFE_CLEAN(_layout, vkDestroyDescriptorSetLayout(_device, _layout, VKE_NULL_PTR));
+    VKE_SAFE_CLEAN(_pool, vkDestroyDescriptorPool(_device, _pool, VKE_NULLPTR));
+    VKE_SAFE_CLEAN(_layout, vkDestroyDescriptorSetLayout(_device, _layout, VKE_NULLPTR));
 }
 
 void vke::priv::VulkanDescriptorSet::add(u32 binding, u32 index, VkDescriptorImageInfo *image_info, VkDescriptorType descriptor_type, VkShaderStageFlags stage_flags)
@@ -31,7 +30,7 @@ void vke::priv::VulkanDescriptorSet::add(u32 binding, u32 index, VkDescriptorIma
             ._index = index,
             ._type = Type::Image,
             ._image_info = image_info,
-            ._buffer_info = VKE_NULL_PTR,
+            ._buffer_info = VKE_NULLPTR,
             ._descriptor_type = descriptor_type,
             ._stage_flags = stage_flags
         }
@@ -47,7 +46,7 @@ void vke::priv::VulkanDescriptorSet::add(u32 binding, u32 index, VkDescriptorBuf
             ._binding = binding,
             ._index = index,
             ._type = Type::Buffer,
-            ._image_info = VKE_NULL_PTR,
+            ._image_info = VKE_NULLPTR,
             ._buffer_info = buffer_info,
             ._descriptor_type = descriptor_type,
             ._stage_flags = stage_flags
@@ -91,10 +90,10 @@ void vke::priv::VulkanDescriptorSet::generate(VkPipelineLayout *pipeline_layout)
         }
 
         if (info._type == Type::Image) {
-            write_sets.at(info._index).push_back({_create_write_set(VKE_NULL_PTR, info._descriptor_type, info._image_info, VKE_NULL_PTR, info._binding)});
+            write_sets.at(info._index).push_back({_create_write_set(VKE_NULLPTR, info._descriptor_type, info._image_info, VKE_NULLPTR, info._binding)});
             continue;
         }
-        write_sets.at(info._index).push_back({_create_write_set(VKE_NULL_PTR, info._descriptor_type, VKE_NULL_PTR, info._buffer_info, info._binding)});
+        write_sets.at(info._index).push_back({_create_write_set(VKE_NULLPTR, info._descriptor_type, VKE_NULLPTR, info._buffer_info, info._binding)});
     }
 
     VkDescriptorPoolCreateInfo pool_info = {};
@@ -103,16 +102,21 @@ void vke::priv::VulkanDescriptorSet::generate(VkPipelineLayout *pipeline_layout)
     pool_info.poolSizeCount = static_cast<u32>(pool_sizes.size());
     pool_info.pPoolSizes = pool_sizes.data();
 
-    VKE_ASSERT(vkCreateDescriptorPool(_device, &pool_info, VKE_NULL_PTR, &_pool));
+    VKE_ASSERT(vkCreateDescriptorPool(_device, &pool_info, VKE_NULLPTR, &_pool));
 
     VkDescriptorSetLayoutCreateInfo layout_info = {};
     layout_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
     layout_info.bindingCount = static_cast<u32>(bindings.size());
     layout_info.pBindings = bindings.data();
 
-    VKE_ASSERT(vkCreateDescriptorSetLayout(_device, &layout_info, VKE_NULL_PTR, &_layout));
+    VKE_ASSERT(vkCreateDescriptorSetLayout(_device, &layout_info, VKE_NULLPTR, &_layout));
 
-    VkPushConstantRange push_constant_range = {VK_SHADER_STAGE_VERTEX_BIT, VKE_MATRIX_4F_SIZE, 0};
+    const VkPushConstantRange push_constant_range = {
+        .stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
+        .offset = 0,
+        .size = sizeof(maths::Matrix4f),
+    };
+
     VkPipelineLayoutCreateInfo pipeline_info = {};
     pipeline_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     pipeline_info.setLayoutCount = 1;
@@ -120,7 +124,7 @@ void vke::priv::VulkanDescriptorSet::generate(VkPipelineLayout *pipeline_layout)
     pipeline_info.pushConstantRangeCount = 1;
     pipeline_info.pPushConstantRanges = &push_constant_range;
 
-    VKE_ASSERT(vkCreatePipelineLayout(_device, &pipeline_info, VKE_NULL_PTR, pipeline_layout));
+    VKE_ASSERT(vkCreatePipelineLayout(_device, &pipeline_info, VKE_NULLPTR, pipeline_layout));
 
     for (u32 i = 0; i < _sets.size(); ++i) {
 
@@ -135,7 +139,7 @@ void vke::priv::VulkanDescriptorSet::generate(VkPipelineLayout *pipeline_layout)
         for (u32 j = 0; j < write_sets[i].size(); ++j) {
             write_sets[i][j].dstSet = _sets[i];
         };
-        vkUpdateDescriptorSets(_device, static_cast<u32>(write_sets[i].size()), write_sets[i].data(), 0, VKE_NULL_PTR);
+        vkUpdateDescriptorSets(_device, static_cast<u32>(write_sets[i].size()), write_sets[i].data(), 0, VKE_NULLPTR);
     }
 }
 

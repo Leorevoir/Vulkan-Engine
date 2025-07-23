@@ -10,14 +10,14 @@ namespace vke {
 class VKE_API VulkanShader : public VulkanObject
 {
     public:
-        explicit VulkanShader(VulkanContext *context);
+        constexpr VulkanShader() = default;
         ~VulkanShader() override;
 
         void update() override;
 
         /** getters */
         VkPipeline &getPipeline();
-        std::vector<VkPipelineShaderStageCreateInfo> &getShaderStages();
+        const std::vector<VkPipelineShaderStageCreateInfo> &getShaderStages() const;
         VkCullModeFlags getCullMode() const;
         VkFrontFace getFrontFace() const;
         VkPipelineVertexInputStateCreateInfo getVertexInputState() const;
@@ -33,7 +33,6 @@ class VKE_API VulkanShader : public VulkanObject
         void setOneStage(bool one_stage);
 
     protected:
-        VulkanContext *_context = nullptr;
         VkPipeline _pipeline = VK_NULL_HANDLE;
         VkCullModeFlags _cull_flags = VK_CULL_MODE_NONE;
         VkFrontFace _front_face = VK_FRONT_FACE_COUNTER_CLOCKWISE;
