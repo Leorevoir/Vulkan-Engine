@@ -14,7 +14,7 @@ struct VKE_API VulkanBuffer final {
         VkDeviceSize _alignment = 0;
         VkBuffer _buffer = VKE_NULLPTR;
         VkDeviceMemory _memory = VKE_NULLPTR;
-        VkDescriptorBufferInfo _descriptorInfo;
+        VkDescriptorBufferInfo _descriptor;
 
         VkBufferUsageFlags _usageFlags = 0;
         VkMemoryPropertyFlags _memoryPropertyFlags = 0;
