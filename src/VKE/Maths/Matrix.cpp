@@ -3,12 +3,13 @@
 VKE_NODISCARD vke::maths::Matrix4f vke::maths::operator*(const Matrix4f &lhs, const Matrix4f &rhs)
 {
     Matrix4f result(0.f);
+    using size_type = typename Matrix4f::size_type;
 
-    for (u32 col = 0; col < 4; ++col) {
+    for (size_type col = 0; col < 4; ++col) {
 
-        for (u32 row = 0; row < 4; ++row) {
+        for (size_type row = 0; row < 4; ++row) {
 
-            for (u32 k = 0; k < 4; ++k) {
+            for (size_type k = 0; k < 4; ++k) {
                 result[col][row] += lhs[k][row] * rhs[col][k];
             }
         }
@@ -101,10 +102,11 @@ VKE_NODISCARD vke::maths::Matrix3f vke::maths::inverse(const Matrix3f &m)
 
 VKE_NODISCARD vke::maths::Matrix3f vke::maths::transpose(const Matrix3f &m)
 {
+    using size_type = typename Matrix4f::size_type;
     Matrix3f result;
 
-    for (usize col = 0; col < 3; ++col) {
-        for (usize row = 0; row < 3; ++row) {
+    for (size_type col = 0; col < 3; ++col) {
+        for (size_type row = 0; row < 3; ++row) {
             result[col][row] = m[row][col];
         }
     }
@@ -114,10 +116,11 @@ VKE_NODISCARD vke::maths::Matrix3f vke::maths::transpose(const Matrix3f &m)
 
 VKE_NODISCARD vke::maths::Matrix4f vke::maths::inverseTranspose(const Matrix4f &m)
 {
+    using size_type = typename Matrix4f::size_type;
     Matrix3f upper_left;
 
-    for (usize col = 0; col < 3; ++col) {
-        for (usize row = 0; row < 3; ++row) {
+    for (size_type col = 0; col < 3; ++col) {
+        for (size_type row = 0; row < 3; ++row) {
             upper_left[col][row] = m[col][row];
         }
     }
@@ -125,8 +128,8 @@ VKE_NODISCARD vke::maths::Matrix4f vke::maths::inverseTranspose(const Matrix4f &
     const Matrix3f inverse_transpose = transpose(inverse(upper_left));
     Matrix4f result(1.f);
 
-    for (usize col = 0; col < 3; ++col) {
-        for (usize row = 0; row < 3; ++row) {
+    for (size_type col = 0; col < 3; ++col) {
+        for (size_type row = 0; row < 3; ++row) {
             result[col][row] = inverse_transpose[col][row];
         }
     }

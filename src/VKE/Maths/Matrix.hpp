@@ -20,10 +20,21 @@ struct VKEM_API Matrix {
         VKE_NODISCARD VKE_INLINE VKE_CONSTEXPR explicit Matrix(const T &value)
         {
             for (size_type i = 0; i < M; ++i) {
+
                 for (size_type j = 0; j < N; ++j) {
-                    _columns[i][j] = value;
+                    _columns[i][j] = (i == j) ? value : T(0);
                 }
             }
+        }
+
+        VKE_NODISCARD VKE_INLINE VKE_CONSTEXPR static Matrix Identity()
+        {
+            Matrix result(T(0));
+
+            for (size_type i = 0; i < std::min(N, M); ++i) {
+                result[i][i] = T(1);
+            }
+            return result;
         }
 
         template<typename... Args>
@@ -32,6 +43,7 @@ struct VKEM_API Matrix {
         {
             T values[N * M] = {static_cast<T>(args)...};
             for (size_type i = 0; i < M; ++i) {
+
                 for (size_type j = 0; j < N; ++j) {
                     _columns[i][j] = values[i * N + j];
                 }
@@ -43,6 +55,7 @@ struct VKEM_API Matrix {
         VKE_NODISCARD VKE_INLINE VKE_CONSTEXPR explicit Matrix(const Matrix<N, M, U> &other)
         {
             for (size_type i = 0; i < M; ++i) {
+
                 for (size_type j = 0; j < N; ++j) {
                     _columns[i][j] = static_cast<T>(other[i][j]);
                 }
@@ -67,16 +80,6 @@ struct VKEM_API Matrix {
         VKE_NODISCARD VKE_INLINE VKE_CONSTEXPR const T *data() const
         {
             return reinterpret_cast<const T *>(_columns);
-        }
-
-        VKE_NODISCARD VKE_INLINE VKE_CONSTEXPR T &operator()(size_type row, size_type col)
-        {
-            return _columns[col][row];
-        }
-
-        VKE_NODISCARD VKE_INLINE VKE_CONSTEXPR const T &operator()(size_type row, size_type col) const
-        {
-            return _columns[col][row];
         }
 
     private:
