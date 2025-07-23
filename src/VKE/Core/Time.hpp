@@ -1,13 +1,13 @@
 #pragma once
 
+#include <VKE/Macros.hpp>
 #include <VKE/Types.hpp>
-#include <chrono>
 
 namespace vke {
 
 namespace core {
 
-class Time final : public NonCopyable
+class VKE_API Time final : public NonCopyable
 {
     public:
         static Time &getInstance();
@@ -15,13 +15,19 @@ class Time final : public NonCopyable
         void start();
         void stop();
 
+        /** getters */
         f32 getDeltaTime() const;
+        f32 getFPS() const;
 
-        static f32 toMilliseconds(f32 seconds);
-        static f32 toSeconds(f32 milliseconds);
+        /** setters */
+        void setMaxFPS(const f32 max_fps);
+
+        static f32 toMilliseconds(const f32 seconds);
+        static f32 toSeconds(const f32 milliseconds);
 
     private:
-        f32 _delta_time;
+        f32 _max_fps = VKE_DEFAULT_MAX_FPS;
+        f32 _delta_time = .0f;
 };
 
 }// namespace core
