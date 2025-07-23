@@ -1,9 +1,13 @@
+#ifndef VKE_USE_PLATFORM_XCB_KHR
+#define VKE_USE_PLATFORM_XCB_KHR
+#endif
+
 #if defined(VKE_USE_PLATFORM_XCB_KHR)
 
-    #include <VKE/Error.hpp>
-    #include <VKE/Memory.hpp>
-    #include <VKE/Systems/MouseEvent.hpp>
-    #include <VKE/Window/Platform/Xcb.hpp>
+#include <VKE/Error.hpp>
+#include <VKE/Memory.hpp>
+#include <VKE/Systems/MouseEvent.hpp>
+#include <VKE/Window/Platform/Xcb.hpp>
 
 /**
  * helpers
@@ -153,6 +157,7 @@ void vke::detail::VKE_XCBWindow::_handle_events(xcb_generic_event_t *event)
             switch (b->detail) {
                 case XCB_BUTTON_INDEX_1:
                     mouse_button.setButton(event::MouseEvent::Type::Left);
+                    break;
                 case XCB_BUTTON_INDEX_2:
                     mouse_button.setButton(event::MouseEvent::Type::Middle);
                     break;
@@ -195,10 +200,7 @@ void vke::detail::VKE_XCBWindow::_handle_events(xcb_generic_event_t *event)
         case XCB_MOTION_NOTIFY: {
             const xcb_motion_notify_event_t *m = reinterpret_cast<xcb_motion_notify_event_t *>(event);
             auto &mouse_event = event::MouseEvent::getInstance();
-
-            maths::Vector2f position;
-            position.x = static_cast<float>(m->event_x);
-            position.y = static_cast<float>(m->event_y);
+            const maths::Vector2f position={ static_cast<f32>(m->event_x), static_cast<f32>(m->event_y) };
 
             mouse_event.setPosition(position);
             break;

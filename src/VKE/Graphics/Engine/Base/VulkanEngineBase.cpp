@@ -112,7 +112,6 @@ void vke::priv::VulkanEngineBase::build_command_buffer()
             render_pass_begin_info.framebuffer = _framebuffers[i];
 
             vkCmdBeginRenderPass(_command_buffer[i], &render_pass_begin_info, VK_SUBPASS_CONTENTS_INLINE);
-            VkDeviceSize offsets[1] = {0};
             vkCmdBindDescriptorSets(_command_buffer[i], VK_PIPELINE_BIND_POINT_GRAPHICS, _pipeline_layout, 0, 1, &(_descriptor_set->get(0)), 0, NULL);
 
             _set_viewports(_command_buffer[i]);

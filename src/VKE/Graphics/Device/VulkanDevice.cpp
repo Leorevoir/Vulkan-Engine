@@ -38,9 +38,9 @@ vke::priv::VulkanDevice::VulkanDevice(VkPhysicalDevice physical_device)
 
 vke::priv::VulkanDevice::~VulkanDevice()
 {
-    if (_commandPool) {
-        vkDestroyCommandPool(_logicalDevice, _commandPool, VKE_NULLPTR);
-        _commandPool = VKE_NULLPTR;
+    if (_command_pool) {
+        vkDestroyCommandPool(_logicalDevice, _command_pool, VKE_NULLPTR);
+        _command_pool = VKE_NULLPTR;
     }
     if (_logicalDevice) {
         vkDestroyDevice(_logicalDevice, VKE_NULLPTR);
@@ -176,7 +176,6 @@ VkResult vke::priv::VulkanDevice::createLogicalDevice(VkPhysicalDeviceFeatures e
 
     if (isExtensionSupported(VK_EXT_DEBUG_MARKER_EXTENSION_NAME)) {
         deviceExtensions.push_back(VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
-        _enableDebugMarkers = true;
     }
 
     if (deviceExtensions.size() > 0) {
@@ -187,7 +186,7 @@ VkResult vke::priv::VulkanDevice::createLogicalDevice(VkPhysicalDeviceFeatures e
     const VkResult result = vkCreateDevice(_physicalDevice, &deviceCreateInfo, VKE_NULLPTR, &_logicalDevice);
 
     if (result == VK_SUCCESS) {
-        _commandPool = createCommandPool(_queueFamilyIndices.graphics);
+        _command_pool = createCommandPool(_queueFamilyIndices.graphics);
     }
 
     _enabledFeatures = enabled_features;
@@ -272,24 +271,6 @@ VkResult vke::priv::VulkanDevice::createBuffer(VkBufferUsageFlags usage_flags, V
     return buffer->bind();
 }
 
-void vke::priv::VulkanDevice::copyBuffer(VulkanBuffer *dst, VulkanBuffer *src, VkQueue queue, VkBufferCopy *copy_region)
-{
-    assert(dst->_size <= src->_size);
-    assert(src->_buffer);
-
-    VkCommandBuffer cmd = createCommandBuffer(VK_COMMAND_BUFFER_LEVEL_PRIMARY, true);
-    VkBufferCopy buffer_copy{};
-
-    if (copy_region) {
-        buffer_copy = *copy_region;
-    } else {
-        buffer_copy.size = src->_size;
-    }
-
-    vkCmdCopyBuffer(cmd, src->_buffer, dst->_buffer, 1, &buffer_copy);
-    flushCommandBuffer(cmd, queue);
-}
-
 VkCommandPool vke::priv::VulkanDevice::createCommandPool(u32 queue_family_index, VkCommandPoolCreateFlags flags)
 {
     VkCommandPoolCreateInfo pool_info{};
@@ -320,52 +301,16 @@ VkCommandBuffer vke::priv::VulkanDevice::createCommandBuffer(VkCommandBufferLeve
 
 VkCommandBuffer vke::priv::VulkanDevice::createCommandBuffer(VkCommandBufferLevel level, bool begin)
 {
-    return createCommandBuffer(level, _commandPool, begin);
+    return createCommandBuffer(level, _command_pool, begin);
 }
 
-void vke::priv::VulkanDevice::flushCommandBuffer(VkCommandBuffer command_buffer, VkQueue queue, VkCommandPool pool, bool free)
-{
-    if (command_buffer == VKE_NULLPTR) {
-        return;
-    }
-
-    VKE_ASSERT(vkEndCommandBuffer(command_buffer));
-
-    VkSubmitInfo submit_info{};
-
-    submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    submit_info.commandBufferCount = 1;
-    submit_info.pCommandBuffers = &command_buffer;
-
-    VkFenceCreateInfo fence_info{};
-
-    fence_info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-    fence_info.flags = 0;
-
-    VkFence fence;
-
-    VKE_ASSERT(vkCreateFence(_logicalDevice, &fence_info, VKE_NULLPTR, &fence));
-    VKE_ASSERT(vkQueueSubmit(queue, 1, &submit_info, fence));
-    VKE_ASSERT(vkWaitForFences(_logicalDevice, 1, &fence, VK_TRUE, VKE_FENCE_TIMEOUT));
-    vkDestroyFence(_logicalDevice, fence, VKE_NULLPTR);
-    if (free) {
-        vkFreeCommandBuffers(_logicalDevice, pool, 1, &command_buffer);
-    }
-}
-
-void vke::priv::VulkanDevice::flushCommandBuffer(VkCommandBuffer command_buffer, VkQueue queue, bool free)
-{
-    flushCommandBuffer(command_buffer, queue, _commandPool, free);
-}
+/**
+ * getters
+ */
 
 bool vke::priv::VulkanDevice::isExtensionSupported(std::string extension) const
 {
     return std::find(_supportedExtensions.begin(), _supportedExtensions.end(), extension) != _supportedExtensions.end();
-}
-
-vke::priv::VulkanDevice::operator VkDevice()
-{
-    return _logicalDevice;
 }
 
 /**

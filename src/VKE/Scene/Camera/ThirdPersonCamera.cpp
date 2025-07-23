@@ -5,12 +5,9 @@
  * protected
 */
 
-#include <iostream>
-
 void vke::ThirdPersonCamera::updateThirdPersonCamera()
 {
     const auto &mouse_event = vke::event::MouseEvent::getInstance();
-    const auto &mouse_button = mouse_event.getButton();
     const auto &mouse_position = mouse_event.getPosition();
     const auto &mouse_scroll = mouse_event.getScroll();
 
