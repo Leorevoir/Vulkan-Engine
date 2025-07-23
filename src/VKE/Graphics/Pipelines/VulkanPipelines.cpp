@@ -56,15 +56,10 @@ void vke::priv::VulkanPipelines::createBase(const VkPipelineLayout &pipeline_lay
     _depth_stencil_state.back.compareOp = VK_COMPARE_OP_ALWAYS;
 
     _viewport_state.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-    // _viewport_state.viewportCount = 5;
-    // _viewport_state.scissorCount = 5;
-
-    //////
     _viewport_state.viewportCount = 1;
     _viewport_state.scissorCount = 1;
     _viewport_state.pViewports = VKE_NULLPTR;
     _viewport_state.pScissors = VKE_NULLPTR;
-    //////
 
     _multisample_state.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
     _multisample_state.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;

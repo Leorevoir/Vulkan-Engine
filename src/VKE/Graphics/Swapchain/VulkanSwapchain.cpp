@@ -1,8 +1,6 @@
 #include <VKE/Error.hpp>
 #include <VKE/Graphics/Swapchain/VulkanSwapchain.hpp>
 
-#include <iostream>
-
 /**
  * helper
  */
@@ -326,8 +324,9 @@ void vke::priv::VulkanSwapchain::create(u32 *width, u32 *height, bool vsync)
 VkResult vke::priv::VulkanSwapchain::next(VkSemaphore present_semaphore, u32 *image_index)
 {
     if (_swapchain) {
-        return fpAcquireNextImageKHR(_device, _swapchain, UINT64_MAX, present_semaphore, (VkFence) nullptr, image_index);
+        return fpAcquireNextImageKHR(_device, _swapchain, UINT64_MAX, present_semaphore, static_cast<VkFence>(VKE_NULLPTR), image_index);
     }
+
     return VK_SUCCESS;
 }
 
@@ -352,6 +351,7 @@ VkResult vke::priv::VulkanSwapchain::queue(VkQueue queue, u32 image_index, VkSem
     if (_swapchain) {
         return vkQueuePresentKHR(queue, &presentation_info);
     }
+
     return VK_SUCCESS;
 }
 
