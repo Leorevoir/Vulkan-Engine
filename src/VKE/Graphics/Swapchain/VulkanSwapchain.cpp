@@ -358,13 +358,17 @@ VkResult vke::priv::VulkanSwapchain::queue(VkQueue queue, u32 image_index, VkSem
 void vke::priv::VulkanSwapchain::destroy()
 {
     for (u32 i = 0; i < _buffers.size(); i++) {
-        if (_buffers[i]._view) {
-            vkDestroyImageView(_device, _buffers[i]._view, nullptr);
-        }
-        if (_buffers[i]._image) {
-            vkDestroyImage(_device, _buffers[i]._image, nullptr);
-        }
-        _buffers[i]._view = VKE_NULLPTR;
+
+        VKE_SAFE_CLEAN(_buffers[i]._view, vkDestroyImageView(_device, _buffers[i]._view, nullptr));
+
+        /** NOTE: the image is part of the swapchain so must be destroyed wsith VkDestroySwapchainKHR */
         _buffers[i]._image = VKE_NULLPTR;
     }
+
+    if (_swapchain) {
+        fpDestroySwapchainKHR(_device, _swapchain, nullptr);
+        _swapchain = VKE_NULLPTR;
+    }
+
+    VKE_SAFE_CLEAN(_surface, vkDestroySurfaceKHR(_instance, _surface, VKE_NULLPTR));
 }
