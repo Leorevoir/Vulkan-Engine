@@ -58,6 +58,7 @@ void vke::priv::VulkanEngineBase::renderFrame()
     update();
     draw();
     render();
+    build_command_buffer();
 
     const auto time_end = std::chrono::high_resolution_clock::now();
     const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(time_end - time_start).count();
@@ -95,31 +96,34 @@ void vke::priv::VulkanEngineBase::waitForCurrentFrame()
 
 void vke::priv::VulkanEngineBase::build_command_buffer()
 {
-    VkCommandBufferBeginInfo cmd_buffer_begin_info = {};
-    cmd_buffer_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    VkCommandBufferBeginInfo cmdBufInfo = {};
+    cmdBufInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 
-    for (u32 i = 0; i < _command_buffer.size(); ++i) {
-        VKE_ASSERT(vkBeginCommandBuffer(_command_buffer[i], &cmd_buffer_begin_info));
+    for (size_t i = 0; i < _command_buffer.size(); ++i) {
 
-        buildCommandBufferBeforeRenderPass();
+        VKE_ASSERT(vkBeginCommandBuffer(_command_buffer[i], &cmdBufInfo));
+
+        buildCommandBufferBeforeRenderPass(_command_buffer[i]);
 
         {
-            VkClearValue clear_values[2] = {};
-            clear_values[0].color = {{.1f, .2f, .3f, .1f}};
+            VkClearValue clear_values[2];
+            clear_values[0].color = {{0.1f, 0.2f, 0.3f, 1.0f}};
             clear_values[1].depthStencil = {1.0f, 0};
+
             VkRenderPassBeginInfo render_pass_begin_info = {};
             render_pass_begin_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
             render_pass_begin_info.renderPass = _render_pass;
-            render_pass_begin_info.renderArea = {
-                .offset = {.x = 0, .y = 0},
-                .extent = {.width = _size.width, .height = _size.height},
-            };
+            render_pass_begin_info.renderArea.offset.x = 0;
+            render_pass_begin_info.renderArea.offset.y = 0;
+            render_pass_begin_info.renderArea.extent.width = _size.width;
+            render_pass_begin_info.renderArea.extent.height = _size.height;
             render_pass_begin_info.clearValueCount = 2;
             render_pass_begin_info.pClearValues = clear_values;
             render_pass_begin_info.framebuffer = _framebuffers[i];
 
             vkCmdBeginRenderPass(_command_buffer[i], &render_pass_begin_info, VK_SUBPASS_CONTENTS_INLINE);
-            vkCmdBindDescriptorSets(_command_buffer[i], VK_PIPELINE_BIND_POINT_GRAPHICS, _pipeline_layout, 0, 1, &(_descriptor_set->get(0)), 0, VKE_NULLPTR);
+            VkDeviceSize offsets[1] = {0};
+            vkCmdBindDescriptorSets(_command_buffer[i], VK_PIPELINE_BIND_POINT_GRAPHICS, _pipeline_layout, 0, 1, &(_descriptor_set->get(0)), 0, NULL);
 
             _set_viewports(_command_buffer[i]);
             drawObjects(_command_buffer[i]);
@@ -127,7 +131,8 @@ void vke::priv::VulkanEngineBase::build_command_buffer()
             vkCmdEndRenderPass(_command_buffer[i]);
         }
 
-        buildCommandBufferAfterRenderPass();
+        buildCommandBufferAfterRenderPass(_command_buffer[i]);
+
         VKE_ASSERT(vkEndCommandBuffer(_command_buffer[i]));
     }
     vkQueueWaitIdle(_queue);
@@ -221,15 +226,15 @@ void vke::priv::VulkanEngineBase::_get_physical_device()
     VkSemaphoreCreateInfo semaphore_create_info = {};
     semaphore_create_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
-    VKE_ASSERT(vkCreateSemaphore(_device, &semaphore_create_info, VKE_NULLPTR, &_semaphores._presentation));
-    VKE_ASSERT(vkCreateSemaphore(_device, &semaphore_create_info, VKE_NULLPTR, &_semaphores._rendering));
+    VKE_ASSERT(vkCreateSemaphore(_device, &semaphore_create_info, VKE_NULLPTR, &_semaphores._imageAvailableSemaphore));
+    VKE_ASSERT(vkCreateSemaphore(_device, &semaphore_create_info, VKE_NULLPTR, &_semaphores._renderFinishedSemaphore));
 
     _submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     _submit_info.pWaitDstStageMask = &_submit_stages;
     _submit_info.waitSemaphoreCount = 1;
-    _submit_info.pWaitSemaphores = &_semaphores._presentation;
+    _submit_info.pWaitSemaphores = &_semaphores._imageAvailableSemaphore;
     _submit_info.signalSemaphoreCount = 1;
-    _submit_info.pSignalSemaphores = &_semaphores._rendering;
+    _submit_info.pSignalSemaphores = &_semaphores._renderFinishedSemaphore;
 }
 
 /**
@@ -439,6 +444,7 @@ void vke::priv::VulkanEngineBase::_set_viewports(VkCommandBuffer &cmd_buffer)
 
     viewports[0] = {0, 0, static_cast<f32>(_size.width), static_cast<f32>(_size.height), .0f, 1.0f};
     scissor_rects[0] = {.offset = {0, 0}, .extent = {_size.width, _size.height}};
+
     vkCmdSetViewport(cmd_buffer, 0, 1, viewports);
     vkCmdSetScissor(cmd_buffer, 0, 1, scissor_rects);
 }
@@ -452,13 +458,13 @@ void vke::priv::VulkanEngineBase::_destroy()
     VKE_ASSERT(vkQueueWaitIdle(_queue));
     vkDeviceWaitIdle(_device);
 
-    // Destroy resources that depend on the device
+    /** @brief destroy resources that depend on the device */
     _context.reset();
     _pipelines.reset();
     _vertex_descriptor.reset();
     _descriptor_set.reset();
 
-    // Clean up other Vulkan resources
+    /** @brief clean up other Vulkan resources */
     VKE_SAFE_CLEAN(_render_pass, vkDestroyRenderPass(_device, _render_pass, VKE_NULLPTR));
 
     for (auto &shader : _shader_modules) {
@@ -466,8 +472,8 @@ void vke::priv::VulkanEngineBase::_destroy()
     }
 
     VKE_SAFE_CLEAN(_pipeline_cache, vkDestroyPipelineCache(_device, _pipeline_cache, VKE_NULLPTR));
-    VKE_SAFE_CLEAN(_semaphores._presentation, vkDestroySemaphore(_device, _semaphores._presentation, VKE_NULLPTR));
-    VKE_SAFE_CLEAN(_semaphores._rendering, vkDestroySemaphore(_device, _semaphores._rendering, VKE_NULLPTR));
+    VKE_SAFE_CLEAN(_semaphores._imageAvailableSemaphore, vkDestroySemaphore(_device, _semaphores._imageAvailableSemaphore, VKE_NULLPTR));
+    VKE_SAFE_CLEAN(_semaphores._renderFinishedSemaphore, vkDestroySemaphore(_device, _semaphores._renderFinishedSemaphore, VKE_NULLPTR));
 
     _swapchain.destroy();
     _destroy_command_buffer();
@@ -475,10 +481,10 @@ void vke::priv::VulkanEngineBase::_destroy()
     _destroy_depth_stencil();
     _destroy_fences();
 
-    // Destroy the device
+    /** @brief destroy the device */
     _vulkan_device.reset();
 
-    // Destroy the instance
+    /** @brief Destroy the instance */
     VKE_SAFE_CLEAN(_instance, vkDestroyInstance(_instance, VKE_NULLPTR));
     _prepared = false;
 }
@@ -561,15 +567,14 @@ void vke::priv::VulkanEngineBase::_acquire_frame()
         return;
     }
 
-    const auto error = _swapchain.next(_semaphores._presentation, &_current_buffer);
+    VkResult error = _swapchain.next(_semaphores._imageAvailableSemaphore, &_current_buffer);
 
     if (error == VK_SUBOPTIMAL_KHR || error == VK_ERROR_OUT_OF_DATE_KHR) {
-        std::cout << "VulkanEngineBase::_acquire_frame: Swapchain out of date or suboptimal, resizing window..." << std::endl;
         _resize_window();
-        return _acquire_frame();
-    } else if (error != VK_SUCCESS) {
-        throw vke::exception::RuntimeError("Vulkan fatal error", VKE_GET_ERROR_STRING(error), " file: ", __FILE__, ", line: ", __LINE__);
+        error = _swapchain.next(_semaphores._imageAvailableSemaphore, &_current_buffer);
     }
+
+    VKE_ASSERT(error);
     VKE_ASSERT(vkQueueWaitIdle(_queue));
 }
 
@@ -579,14 +584,13 @@ void vke::priv::VulkanEngineBase::_submit_frame()
         return;
     }
 
-    const auto error = _swapchain.queue(_queue, _current_buffer, _semaphores._rendering);
+    VkResult error = _swapchain.queue(_queue, _current_buffer, _semaphores._renderFinishedSemaphore);
 
     if (error == VK_SUBOPTIMAL_KHR || error == VK_ERROR_OUT_OF_DATE_KHR) {
-        std::cout << "VulkanEngineBase::_submit_frame: Swapchain out of date or suboptimal, resizing window..." << std::endl;
         _resize_window();
-        return _submit_frame();
-    } else if (error != VK_SUCCESS) {
-        throw vke::exception::RuntimeError("Vulkan fatal error", VKE_GET_ERROR_STRING(error), " file: ", __FILE__, ", line: ", __LINE__);
+        return;
     }
+
+    VKE_ASSERT(error);
     VKE_ASSERT(vkQueueWaitIdle(_queue));
 }

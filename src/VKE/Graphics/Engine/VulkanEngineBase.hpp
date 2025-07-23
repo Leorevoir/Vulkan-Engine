@@ -54,8 +54,8 @@ class VKE_API VulkanEngineBase : public VulkanEngineInterface
         void render() override;
 
         virtual void drawObjects(VkCommandBuffer VKE_UNUSED &cmd) {};
-        virtual void buildCommandBufferBeforeRenderPass() {};
-        virtual void buildCommandBufferAfterRenderPass() {};
+        virtual void buildCommandBufferBeforeRenderPass(VkCommandBuffer VKE_UNUSED &cmd) {};
+        virtual void buildCommandBufferAfterRenderPass(VkCommandBuffer VKE_UNUSED &cmd) {};
         void build_command_buffer();
 
         void waitForCurrentFrame();
@@ -80,9 +80,9 @@ class VKE_API VulkanEngineBase : public VulkanEngineInterface
         VkQueue _queue = VKE_NULLPTR;
         struct RenderSemaphores {
                 /** swapchain image presentation */
-                VkSemaphore _presentation = VKE_NULLPTR;
+                VkSemaphore _imageAvailableSemaphore = VKE_NULLPTR;
                 /** command buffer submission & execution */
-                VkSemaphore _rendering = VKE_NULLPTR;
+                VkSemaphore _renderFinishedSemaphore = VKE_NULLPTR;
         } _semaphores;
         struct RenderDepthStencil {
                 VkImage _image = VKE_NULLPTR;
