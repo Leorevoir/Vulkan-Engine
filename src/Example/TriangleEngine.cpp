@@ -31,7 +31,7 @@ void Triangle::initialize()
 
 void Triangle::update()
 {
-    /* __nothing__ */
+    /* __update__ */
 }
 
 /**
@@ -53,6 +53,7 @@ void TriangleShader::initialize()
 
     _shader_stages.push_back(_load(vertex_shader_path, VK_SHADER_STAGE_VERTEX_BIT));
     _shader_stages.push_back(_load(fragment_shader_path, VK_SHADER_STAGE_FRAGMENT_BIT));
+    std::cout << "shader initialized and pushed" << std::endl;
 }
 
 /**
@@ -61,11 +62,6 @@ void TriangleShader::initialize()
 
 void TriangleEngine::initialize()
 {
-
-    if (_context == nullptr) {
-        throw vke::exception::RuntimeError("TriangleEngine", "Context is not set. Call setContext() before initializing the engine.");
-    }
-
     auto context = _context.get();
 
     _triangle = vke::VulkanObject::Create<Triangle>(context);
