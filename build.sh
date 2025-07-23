@@ -7,7 +7,7 @@ ORG="\033[1;33m"
 RST="\033[0m"
 
 PROGRAM_NAME="vulkan_engine"
-$UNIT_TESTS_NAME="unit_tests"
+UNIT_TESTS_NAME="unit_tests"
 
 function _error()
 {
@@ -85,7 +85,7 @@ function _tests_run()
 {
     _base_run "-DCMAKE_BUILD_TYPE=Debug -DENABLE_DEBUG=ON -DENABLE_TESTING=ON" "$UNIT_TESTS_NAME"
     cd .. || _error "cd failed"
-    if ! ./unit_tests; then 
+    if ! ./$UNIT_TESTS_NAME; then 
         _error "unit tests error" "unit tests failed!"
     fi
     _success "unit tests succeed!"
