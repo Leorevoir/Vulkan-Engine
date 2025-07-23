@@ -26,7 +26,7 @@ vke::Window::~Window()
     /* __dtor__ */
 }
 
-void vke::Window::createVulkanSurface(VkInstance instance, VkSurfaceKHR &out_surface)
+void vke::Window::createVulkanSurface(VkInstance instance, VkSurfaceKHR &out_surface) const
 {
     _vk_backend->createVulkanSurface(instance, out_surface);
 }
