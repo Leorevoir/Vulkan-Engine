@@ -1,7 +1,7 @@
 #pragma once
 
 #include "VKE/Graphics/Engine/GameEngine.hpp"
-#include "VKE/Graphics/Shader/UniformCamera.hpp"
+// #include "VKE/Graphics/Shader/UniformCamera.hpp"
 #include "VKE/Graphics/Shader/VulkanShader.hpp"
 #include "VKE/Meshes/MeshObject.hpp"
 
@@ -35,5 +35,5 @@ class TriangleEngine : public vke::GameEngine
     private:
         std::shared_ptr<Triangle> _triangle = nullptr;
         std::shared_ptr<TriangleShader> _triangle_shader = nullptr;
-        std::shared_ptr<vke::UniformCamera> _triangle_uniform = nullptr;
+        // std::shared_ptr<vke::UniformCamera> _triangle_uniform = nullptr;
 };

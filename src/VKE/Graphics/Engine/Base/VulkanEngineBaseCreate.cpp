@@ -1,146 +1,5 @@
 #include <VKE/Error.hpp>
-#include <VKE/Graphics/Engine/VulkanEngineBase.hpp>
-
-#include <chrono>
-#include <iostream>
-#include <thread>
-
-/**
-* public
-*/
-
-vke::priv::VulkanEngineBase::VulkanEngineBase()
-{
-    _create_window();
-    _create_vulkan_instance();
-    _get_physical_device();
-}
-
-vke::priv::VulkanEngineBase::~VulkanEngineBase()
-{
-    _destroy();
-}
-
-void vke::priv::VulkanEngineBase::start()
-{
-    _swapchain.init(_window);
-    _create_command_pool();
-    _swapchain.create(_size, false);
-    _create_command_buffer();
-    _create_synchronization_objects();
-    _create_depth_stencil();
-    _create_render_pass();
-    _create_pipeline_cache();
-    _create_framebuffer();
-    _descriptor_set = std::make_unique<VulkanDescriptorSet>(_device);
-    _vertex_descriptor = std::make_unique<VulkanVertexDescriptor>();
-    _pipelines = std::make_unique<VulkanPipelines>(_device, _vertex_descriptor->getState(), _pipeline_cache);
-    _context = std::make_shared<VulkanContext>(_vulkan_device.get(), &_size);
-    _context->_cmd_pool = _command_pool;
-    _context->_pipeline_layout = &_pipeline_layout;
-    _context->_pipeline_cache = _pipeline_cache;
-    _context->_render_pass = _render_pass;
-    _context->_queue = _queue;
-}
-
-/**
-* protected
-*/
-
-void vke::priv::VulkanEngineBase::renderFrame()
-{
-    if (_paused || !_prepared) {
-        return;
-    }
-
-    const auto time_start = std::chrono::high_resolution_clock::now();
-
-    update();
-    draw();
-    render();
-    build_command_buffer();
-
-    const auto time_end = std::chrono::high_resolution_clock::now();
-    const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(time_end - time_start).count();
-
-    _frame_time = static_cast<f32>(duration) / 1000.0f;
-    vkDeviceWaitIdle(_device);
-}
-
-void vke::priv::VulkanEngineBase::render()
-{
-    if (_paused) {
-        return;
-    }
-
-    _signal_frame = false;
-    _acquire_frame();
-    _submit_info.commandBufferCount = 1;
-    _submit_info.pCommandBuffers = &_command_buffer[_current_buffer];
-
-    if (_prepared) {
-        VKE_ASSERT(vkQueueSubmit(_queue, 1, &_submit_info, VKE_NULLPTR));
-    }
-
-    _submit_frame();
-    _signal_frame = true;
-}
-
-void vke::priv::VulkanEngineBase::waitForCurrentFrame()
-{
-    _paused = true;
-    while (!_signal_frame) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    }
-}
-
-void vke::priv::VulkanEngineBase::build_command_buffer()
-{
-    VkCommandBufferBeginInfo cmdBufInfo = {};
-    cmdBufInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-
-    for (size_t i = 0; i < _command_buffer.size(); ++i) {
-
-        VKE_ASSERT(vkBeginCommandBuffer(_command_buffer[i], &cmdBufInfo));
-
-        buildCommandBufferBeforeRenderPass(_command_buffer[i]);
-
-        {
-            VkClearValue clear_values[2];
-            clear_values[0].color = {{0.1f, 0.2f, 0.3f, 1.0f}};
-            clear_values[1].depthStencil = {1.0f, 0};
-
-            VkRenderPassBeginInfo render_pass_begin_info = {};
-            render_pass_begin_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-            render_pass_begin_info.renderPass = _render_pass;
-            render_pass_begin_info.renderArea.offset.x = 0;
-            render_pass_begin_info.renderArea.offset.y = 0;
-            render_pass_begin_info.renderArea.extent.width = _size.width;
-            render_pass_begin_info.renderArea.extent.height = _size.height;
-            render_pass_begin_info.clearValueCount = 2;
-            render_pass_begin_info.pClearValues = clear_values;
-            render_pass_begin_info.framebuffer = _framebuffers[i];
-
-            vkCmdBeginRenderPass(_command_buffer[i], &render_pass_begin_info, VK_SUBPASS_CONTENTS_INLINE);
-            VkDeviceSize offsets[1] = {0};
-            vkCmdBindDescriptorSets(_command_buffer[i], VK_PIPELINE_BIND_POINT_GRAPHICS, _pipeline_layout, 0, 1, &(_descriptor_set->get(0)), 0, NULL);
-
-            _set_viewports(_command_buffer[i]);
-            drawObjects(_command_buffer[i]);
-
-            vkCmdEndRenderPass(_command_buffer[i]);
-        }
-
-        buildCommandBufferAfterRenderPass(_command_buffer[i]);
-
-        VKE_ASSERT(vkEndCommandBuffer(_command_buffer[i]));
-    }
-    vkQueueWaitIdle(_queue);
-}
-
-/**
-* private
-*/
+#include <VKE/Graphics/Engine/Base/VulkanEngineBase.hpp>
 
 /**
 * initialization
@@ -184,6 +43,15 @@ void vke::priv::VulkanEngineBase::_create_vulkan_instance()
     VKE_ASSERT(vkCreateInstance(&instance_create_info, nullptr, &_instance));
 }
 
+void vke::priv::VulkanEngineBase::_create_semaphores()
+{
+    VkSemaphoreCreateInfo semaphore_create_info = {};
+    semaphore_create_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+    VKE_ASSERT(vkCreateSemaphore(_device, &semaphore_create_info, VKE_NULLPTR, &_semaphores._imageAvailableSemaphore));
+    VKE_ASSERT(vkCreateSemaphore(_device, &semaphore_create_info, VKE_NULLPTR, &_semaphores._renderFinishedSemaphore));
+}
+
 void vke::priv::VulkanEngineBase::_get_physical_device()
 {
     u32 gpu_count = 0;
@@ -223,12 +91,7 @@ void vke::priv::VulkanEngineBase::_get_physical_device()
 
     _swapchain.connect(_instance, _physical_device, _device);
 
-    VkSemaphoreCreateInfo semaphore_create_info = {};
-    semaphore_create_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-
-    VKE_ASSERT(vkCreateSemaphore(_device, &semaphore_create_info, VKE_NULLPTR, &_semaphores._imageAvailableSemaphore));
-    VKE_ASSERT(vkCreateSemaphore(_device, &semaphore_create_info, VKE_NULLPTR, &_semaphores._renderFinishedSemaphore));
-
+    _create_semaphores();
     _submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     _submit_info.pWaitDstStageMask = &_submit_stages;
     _submit_info.waitSemaphoreCount = 1;
@@ -435,162 +298,4 @@ void vke::priv::VulkanEngineBase::_create_framebuffer()
         attachments[0] = _swapchain.getBuffers()[i]._view;
         VKE_ASSERT(vkCreateFramebuffer(_device, &framebuffer_create_info, VKE_NULLPTR, &_framebuffers[i]));
     }
-}
-
-void vke::priv::VulkanEngineBase::_set_viewports(VkCommandBuffer &cmd_buffer)
-{
-    VkViewport viewports[1];
-    VkRect2D scissor_rects[1];
-
-    viewports[0] = {0, 0, static_cast<f32>(_size.width), static_cast<f32>(_size.height), .0f, 1.0f};
-    scissor_rects[0] = {.offset = {0, 0}, .extent = {_size.width, _size.height}};
-
-    vkCmdSetViewport(cmd_buffer, 0, 1, viewports);
-    vkCmdSetScissor(cmd_buffer, 0, 1, scissor_rects);
-}
-
-/**
-* destroy
-*/
-
-void vke::priv::VulkanEngineBase::_destroy()
-{
-    VKE_ASSERT(vkQueueWaitIdle(_queue));
-    vkDeviceWaitIdle(_device);
-
-    /** @brief destroy resources that depend on the device */
-    _context.reset();
-    _pipelines.reset();
-    _vertex_descriptor.reset();
-    _descriptor_set.reset();
-
-    /** @brief clean up other Vulkan resources */
-    VKE_SAFE_CLEAN(_render_pass, vkDestroyRenderPass(_device, _render_pass, VKE_NULLPTR));
-
-    for (auto &shader : _shader_modules) {
-        VKE_SAFE_CLEAN(shader, vkDestroyShaderModule(_device, shader, VKE_NULLPTR));
-    }
-
-    VKE_SAFE_CLEAN(_pipeline_cache, vkDestroyPipelineCache(_device, _pipeline_cache, VKE_NULLPTR));
-    VKE_SAFE_CLEAN(_semaphores._imageAvailableSemaphore, vkDestroySemaphore(_device, _semaphores._imageAvailableSemaphore, VKE_NULLPTR));
-    VKE_SAFE_CLEAN(_semaphores._renderFinishedSemaphore, vkDestroySemaphore(_device, _semaphores._renderFinishedSemaphore, VKE_NULLPTR));
-
-    _swapchain.destroy();
-    _destroy_command_buffer();
-    _destroy_framebuffer();
-    _destroy_depth_stencil();
-    _destroy_fences();
-
-    /** @brief destroy the device */
-    _vulkan_device.reset();
-
-    /** @brief Destroy the instance */
-    VKE_SAFE_CLEAN(_instance, vkDestroyInstance(_instance, VKE_NULLPTR));
-    _prepared = false;
-}
-
-void vke::priv::VulkanEngineBase::_destroy_fences()
-{
-    if (_wait_fences.empty()) {
-        return;
-    }
-
-    for (auto &fence : _wait_fences) {
-        vkDestroyFence(_device, fence, VKE_NULLPTR);
-    }
-}
-
-void vke::priv::VulkanEngineBase::_destroy_command_buffer()
-{
-    if (_command_buffer.empty()) {
-        return;
-    }
-
-    vkFreeCommandBuffers(_device, _command_pool, static_cast<u32>(_command_buffer.size()), _command_buffer.data());
-}
-
-void vke::priv::VulkanEngineBase::_destroy_framebuffer()
-{
-    if (_framebuffers.empty()) {
-        return;
-    }
-
-    for (auto &framebuffer : _framebuffers) {
-        vkDestroyFramebuffer(_device, framebuffer, VKE_NULLPTR);
-    }
-}
-
-void vke::priv::VulkanEngineBase::_destroy_depth_stencil()
-{
-    if (_depth_stencil._image_view == VKE_NULLPTR) {
-        return;
-    }
-
-    vkDestroyImageView(_device, _depth_stencil._image_view, VKE_NULLPTR);
-    vkDestroyImage(_device, _depth_stencil._image, VKE_NULLPTR);
-    vkFreeMemory(_device, _depth_stencil._memory, VKE_NULLPTR);
-    _depth_stencil = {};
-}
-
-/**
-* draw
-*/
-
-void vke::priv::VulkanEngineBase::_resize_window()
-{
-    if (!_prepared) {
-        return;
-    }
-
-    _prepared = false;
-    vkDeviceWaitIdle(_device);
-
-    _swapchain.create(_size, false);
-
-    _destroy_depth_stencil();
-    _create_depth_stencil();
-
-    _destroy_framebuffer();
-    _create_framebuffer();
-
-    _destroy_command_buffer();
-    _create_command_buffer();
-    build_command_buffer();
-
-    vkDeviceWaitIdle(_device);
-    _prepared = true;
-}
-
-void vke::priv::VulkanEngineBase::_acquire_frame()
-{
-    if (_paused || !_prepared) {
-        return;
-    }
-
-    VkResult error = _swapchain.next(_semaphores._imageAvailableSemaphore, &_current_buffer);
-
-    if (error == VK_SUBOPTIMAL_KHR || error == VK_ERROR_OUT_OF_DATE_KHR) {
-        _resize_window();
-        error = _swapchain.next(_semaphores._imageAvailableSemaphore, &_current_buffer);
-    }
-
-    VKE_ASSERT(error);
-    VKE_ASSERT(vkQueueWaitIdle(_queue));
-}
-
-void vke::priv::VulkanEngineBase::_submit_frame()
-{
-    if (_paused) {
-        return;
-    }
-
-    VkResult error = _swapchain.queue(_queue, _current_buffer, _semaphores._renderFinishedSemaphore);
-
-    if (error == VK_SUBOPTIMAL_KHR || error == VK_ERROR_OUT_OF_DATE_KHR) {
-        _resize_window();
-        return;
-    }
-
-    VKE_ASSERT(error);
-    VKE_ASSERT(vkQueueWaitIdle(_queue));
 }

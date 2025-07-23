@@ -1,6 +1,6 @@
 #pragma once
 
-#include <VKE/Graphics/Engine/VulkanEngineBase.hpp>
+#include <VKE/Graphics/Engine/Base/VulkanEngineBase.hpp>
 #include <VKE/Macros.hpp>
 
 namespace vke {

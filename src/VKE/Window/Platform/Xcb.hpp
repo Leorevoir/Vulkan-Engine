@@ -22,7 +22,7 @@ class VKE_API VKE_XCBWindow final : public VKE_BackendWindow
         void event() override;
         void flush() override;
         const char *getVulkanExtension() const override;
-        void createVulkanSurface(VkInstance instance, VkSurfaceKHR &out_surface) override;
+        void createVulkanSurface(VkInstance instance, VkSurfaceKHR &out_surface) const override;
 
     private:
         void _create();

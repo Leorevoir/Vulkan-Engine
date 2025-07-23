@@ -57,7 +57,7 @@ const char *vke::detail::VKE_XCBWindow::getVulkanExtension() const
     return VK_KHR_XCB_SURFACE_EXTENSION_NAME;
 }
 
-void vke::detail::VKE_XCBWindow::createVulkanSurface(VkInstance instance, VkSurfaceKHR &out_surface)
+void vke::detail::VKE_XCBWindow::createVulkanSurface(VkInstance instance, VkSurfaceKHR &out_surface) const
 {
     VkXcbSurfaceCreateInfoKHR surface_info = {
         .sType = VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR,

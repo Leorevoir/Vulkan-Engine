@@ -50,15 +50,12 @@ class VKE_API VulkanEngineBase : public VulkanEngineInterface
         std::shared_ptr<Window> _window;
 
         void renderFrame();
-
         void render() override;
 
         virtual void drawObjects(VkCommandBuffer VKE_UNUSED &cmd) {};
         virtual void buildCommandBufferBeforeRenderPass(VkCommandBuffer VKE_UNUSED &cmd) {};
         virtual void buildCommandBufferAfterRenderPass(VkCommandBuffer VKE_UNUSED &cmd) {};
         void build_command_buffer();
-
-        void waitForCurrentFrame();
 
     private:
         /** Vulkan instance */
@@ -109,6 +106,7 @@ class VKE_API VulkanEngineBase : public VulkanEngineInterface
 
         /** initialization */
         void _create_window();
+        void _create_semaphores();
         void _create_vulkan_instance();
         void _get_physical_device();
 
@@ -130,6 +128,7 @@ class VKE_API VulkanEngineBase : public VulkanEngineInterface
         /** destroy */
         void _destroy();
         void _destroy_fences();
+        void _destroy_semaphores();
         void _destroy_framebuffer();
         void _destroy_depth_stencil();
         void _destroy_command_buffer();

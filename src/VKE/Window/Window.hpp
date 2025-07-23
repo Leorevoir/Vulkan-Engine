@@ -14,7 +14,7 @@ class VKE_API Window final
         explicit Window(const maths::Vector2u &size, const std::string &title = "VKE Window");
         ~Window();
 
-        void createVulkanSurface(VkInstance instance, VkSurfaceKHR &out_surface);
+        void createVulkanSurface(VkInstance instance, VkSurfaceKHR &out_surface) const;
 
         VKE_NODISCARD const char *getVulkanExtension() const;
         VKE_NODISCARD bool shouldClose() const;
