@@ -10,6 +10,10 @@
     #define VKE_API
 #endif
 
+#ifndef VKE_DEFAULT_MAX_FPS
+    #define VKE_DEFAULT_MAX_FPS 144.f
+#endif
+
 #define VKE_HIDDEN __attribute__((visibility("hidden")))
 
 /**

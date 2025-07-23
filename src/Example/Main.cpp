@@ -1,4 +1,4 @@
-#include <Example/TriangleEngine.hpp>
+#include <Example/CubeEngine.hpp>
 #include <VKE/Error.hpp>
 
 #include <iostream>
@@ -6,7 +6,7 @@
 int main(void)
 {
     try {
-        auto engine = std::make_unique<TriangleEngine>();
+        auto engine = std::make_unique<CubeEngine>();
 
         engine->start();
         engine->renderLoop();

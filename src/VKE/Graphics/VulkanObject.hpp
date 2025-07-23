@@ -16,13 +16,14 @@ class VKE_API VulkanObject
         virtual void initialize() = 0;
         virtual void update() = 0;
 
-        template<class T>
-        static std::shared_ptr<T> Create(VulkanContext *context)
+        template<class T, class... Args>
+        static std::shared_ptr<T> Create(VulkanContext *context, Args &&...args)
         {
             assert(context != nullptr && "Context is null");
-            std::shared_ptr<T> object = std::make_shared<T>();
+
+            const std::shared_ptr<T> object = std::make_shared<T>(std::forward<Args>(args)...);
             object->setContext(context);
-            // object->initialize();
+            object->initialize();
             return object;
         }
 

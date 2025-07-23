@@ -31,9 +31,9 @@ void vke::VulkanBuffer::copyTo(void *data, VkDeviceSize size)
 
 void vke::VulkanBuffer::setupDescriptorInfo(VkDeviceSize size, VkDeviceSize offset)
 {
-    _descriptorInfo.buffer = _buffer;
-    _descriptorInfo.offset = offset;
-    _descriptorInfo.range = size;
+    _descriptor.buffer = _buffer;
+    _descriptor.offset = offset;
+    _descriptor.range = size;
 }
 
 VkResult vke::VulkanBuffer::invalidate(VkDeviceSize size, VkDeviceSize offset)

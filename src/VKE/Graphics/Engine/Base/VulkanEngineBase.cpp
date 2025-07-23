@@ -50,14 +50,16 @@ void vke::priv::VulkanEngineBase::renderFrame()
         return;
     }
 
-    core::Time::getInstance().start();
+    auto &time = core::Time::getInstance();
+
+    time.start();
 
     update();
     draw();
     render();
     build_command_buffer();
 
-    core::Time::getInstance().stop();
+    time.stop();
 
     vkDeviceWaitIdle(_device);
 }
