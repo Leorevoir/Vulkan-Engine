@@ -18,6 +18,8 @@ class VKE_API UniformCamera : public VulkanUniform, public VulkanObject, public 
         void update() override;
 
     protected:
+        void updateCameraMatrix();
+
         Camera _camera;
 };
 

@@ -47,27 +47,27 @@ if(UNIX AND NOT APPLE)
 # elseif(WIN32)
 endif()
 
-# target_compile_options(vulkan_engine PRIVATE
-#     -Wall
-#     -Wextra
-#     -Werror
-#     -pedantic
-#     -Wconversion
-#     -Wsign-conversion
-#     -Wshadow
-#     -Wnull-dereference
-#     -Wundef
-#     -Wuninitialized
-#     -Winit-self
-#     -Wredundant-decls
-#     -Wcast-align
-#     -Wcast-qual
-#     -Wmissing-declarations
-#     -Wswitch-default
-#     -Wdouble-promotion
-#     -Wformat=2
-#     -Wwrite-strings
-# )
+target_compile_options(vulkan_engine PRIVATE
+    -Wall
+    -Wextra
+    -Werror
+    -pedantic
+    -Wconversion
+    -Wsign-conversion
+    -Wshadow
+    -Wnull-dereference
+    -Wundef
+    -Wuninitialized
+    -Winit-self
+    -Wredundant-decls
+    -Wcast-align
+    -Wcast-qual
+    -Wmissing-declarations
+    -Wswitch-default
+    -Wdouble-promotion
+    -Wformat=2
+    -Wwrite-strings
+)
 
 ########################################
 # NOTE: debug
@@ -82,32 +82,39 @@ endif()
 # ########################################
 # # NOTE: unit-tests
 # ########################################
-# file(GLOB_RECURSE TEST_FILES "tests/*.cpp")
-# file(GLOB_RECURSE SRC_FILES_NO_MAIN "src/*.cpp")
-# list(FILTER SRC_FILES_NO_MAIN EXCLUDE REGEX ".*Main\\.cpp$")
-#
-# add_executable(unit_tests ${TEST_FILES} ${SRC_FILES_NO_MAIN})
-#
-# target_link_libraries(unit_tests PRIVATE
-#     vulkan
-#     pthread
-#     ${CMAKE_DL_LIBS}
-#     criterion
-# )
-#
-# target_include_directories(unit_tests PRIVATE 
-#     ${CMAKE_SOURCE_DIR}/src
-#     ${CMAKE_SOURCE_DIR}/include
-#     ${CMAKE_SOURCE_DIR}/tests
-# )
-#
-# if(UNIX)
-#     add_definitions(-DVK_USE_PLATFORM_XCB_KHR)
-#     target_link_libraries(vulkan_engine PRIVATE xcb)
-# elseif(WIN32)
-#     add_definitions(-DNOMINMAX)
-#     add_definitions(-DVK_USE_PLATFORM_WIN32_KHR)
-# endif()
-#
-# enable_testing()
-# add_test(NAME unit_tests COMMAND unit_tests)
+
+if(ENABLE_TESTING)
+
+    file(GLOB_RECURSE TEST_FILES "tests/*.cpp")
+    file(GLOB_RECURSE SRC_FILES_NO_MAIN "src/VKE/*.cpp")
+
+    add_executable(unit_tests ${TEST_FILES} ${SRC_FILES_NO_MAIN})
+
+    if(UNIX AND NOT APPLE)
+        add_definitions(-DVKE_USE_PLATFORM_XCB_KHR)
+        target_link_libraries(unit_tests PRIVATE xcb)
+    endif()
+
+    target_link_libraries(unit_tests PRIVATE
+        vulkan
+        pthread
+        ${CMAKE_DL_LIBS}
+        criterion
+        glm
+    )
+
+    target_include_directories(unit_tests PRIVATE 
+        ${CMAKE_SOURCE_DIR}/src
+        ${CMAKE_SOURCE_DIR}/include
+        ${CMAKE_SOURCE_DIR}/tests
+    )
+
+    if(UNIX)
+        add_definitions(-DVK_USE_PLATFORM_XCB_KHR)
+        target_link_libraries(vulkan_engine PRIVATE xcb)
+    endif()
+
+    enable_testing()
+    add_test(NAME unit_tests COMMAND unit_tests)
+
+endif()

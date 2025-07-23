@@ -10,7 +10,7 @@ struct VKE_API Camera {
         maths::Matrix4f _model;
         maths::Matrix4f _view;
         maths::Matrix4f _normal;
-        maths::Matrix4f _lightpos;
+        maths::Vector4f _lightpos;
 };
 
 }// namespace vke

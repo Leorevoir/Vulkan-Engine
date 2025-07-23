@@ -3,12 +3,14 @@
 VKE_NODISCARD vke::maths::Matrix4f vke::maths::operator*(const Matrix4f &lhs, const Matrix4f &rhs)
 {
     Matrix4f result(0.f);
+    using size_type = typename Matrix4f::size_type;
 
-    for (u32 row = 0; row < 4; ++row) {
-        for (u32 col = 0; col < 4; ++col) {
+    for (size_type col = 0; col < 4; ++col) {
 
-            for (u32 k = 0; k < 4; ++k) {
-                result[col * 4 + row] += lhs[k * 4 + row] * rhs[col * 4 + k];
+        for (size_type row = 0; row < 4; ++row) {
+
+            for (size_type k = 0; k < 4; ++k) {
+                result[col][row] += lhs[k][row] * rhs[col][k];
             }
         }
     }
@@ -22,11 +24,12 @@ VKE_NODISCARD vke::maths::Matrix4f vke::maths::perspective(const f32 fovy, const
 
     Matrix4f result(0.f);
 
-    result[0] = 1.f / (aspect * tan_half_fovy);
-    result[5] = 1.f / (tan_half_fovy);
-    result[10] = -(far + near) / (far - near);
-    result[11] = -1.f;
-    result[14] = -(2.f * far * near) / (far - near);
+    result[0][0] = 1.f / (aspect * tan_half_fovy);
+    result[1][1] = 1.f / tan_half_fovy;
+    result[2][2] = -(far + near) / (far - near);
+    result[2][3] = -1.f;
+    result[3][2] = -(2.f * far * near) / (far - near);
+
     return result;
 }
 
@@ -34,9 +37,9 @@ VKE_NODISCARD vke::maths::Matrix4f vke::maths::translate(const Matrix4f &mat, co
 {
     Matrix4f result = mat;
 
-    result[12] += translation.x;
-    result[13] += translation.y;
-    result[14] += translation.z;
+    result[3][0] += translation.x;
+    result[3][1] += translation.y;
+    result[3][2] += translation.z;
 
     return result;
 }
@@ -50,17 +53,17 @@ VKE_NODISCARD vke::maths::Matrix4f vke::maths::rotate(f32 angle_radians, const V
     const f32 x = new_axis.x, y = new_axis.y, z = new_axis.z;
     Matrix4f result(1.f);
 
-    result[0] = t * x * x + c;
-    result[1] = t * x * y + s * z;
-    result[2] = t * x * z - s * y;
+    result[0][0] = t * x * x + c;
+    result[0][1] = t * x * y + s * z;
+    result[0][2] = t * x * z - s * y;
 
-    result[4] = t * x * y - s * z;
-    result[5] = t * y * y + c;
-    result[6] = t * y * z + s * x;
+    result[1][0] = t * x * y - s * z;
+    result[1][1] = t * y * y + c;
+    result[1][2] = t * y * z + s * x;
 
-    result[8] = t * x * z + s * y;
-    result[9] = t * y * z - s * x;
-    result[10] = t * z * z + c;
+    result[2][0] = t * x * z + s * y;
+    result[2][1] = t * y * z - s * x;
+    result[2][2] = t * z * z + c;
 
     return result;
 }
@@ -70,67 +73,64 @@ VKE_NODISCARD vke::maths::Matrix4f vke::maths::rotate(const Matrix4f &mat, f32 a
     return mat * rotate(angle_radians, axis);
 }
 
-VKE_NODISCARD vke::maths::Matrix4f vke::maths::inverseTranspose(const Matrix4f &m)
+VKE_NODISCARD vke::maths::Matrix3f vke::maths::inverse(const Matrix3f &m)
 {
-    const f32 subfac_00 = m[10] * m[15] - m[14] * m[11];
-    const f32 subfac_01 = m[9] * m[15] - m[13] * m[11];
-    const f32 subfac_02 = m[9] * m[14] - m[13] * m[10];
-    const f32 subfac_03 = m[8] * m[15] - m[12] * m[11];
-    const f32 subfac_04 = m[8] * m[14] - m[12] * m[10];
-    const f32 subfac_05 = m[8] * m[13] - m[12] * m[9];
-    const f32 subfac_06 = m[6] * m[15] - m[14] * m[7];
-    const f32 subfac_07 = m[5] * m[15] - m[13] * m[7];
-    const f32 subfac_08 = m[5] * m[14] - m[13] * m[6];
-    const f32 subfac_09 = m[4] * m[15] - m[12] * m[7];
-    const f32 subfac_10 = m[4] * m[14] - m[12] * m[6];
-    const f32 subfac_11 = m[4] * m[13] - m[12] * m[5];
-    const f32 subfac_12 = m[6] * m[11] - m[10] * m[7];
-    const f32 subfac_13 = m[5] * m[11] - m[9] * m[7];
-    const f32 subfac_14 = m[5] * m[10] - m[9] * m[6];
-    const f32 subfac_15 = m[4] * m[11] - m[8] * m[7];
-    const f32 subfac_16 = m[4] * m[10] - m[8] * m[6];
-    const f32 subfac_17 = m[4] * m[9] - m[8] * m[5];
-
-    Matrix4f inverse;
-
-    inverse[0] = +(m[5] * subfac_00 - m[6] * subfac_01 + m[7] * subfac_02);
-    inverse[1] = -(m[4] * subfac_00 - m[6] * subfac_03 + m[7] * subfac_04);
-    inverse[2] = +(m[4] * subfac_01 - m[5] * subfac_03 + m[7] * subfac_05);
-    inverse[3] = -(m[4] * subfac_02 - m[5] * subfac_04 + m[6] * subfac_05);
-
-    inverse[4] = -(m[1] * subfac_00 - m[2] * subfac_01 + m[3] * subfac_02);
-    inverse[5] = +(m[0] * subfac_00 - m[2] * subfac_03 + m[3] * subfac_04);
-    inverse[6] = -(m[0] * subfac_01 - m[1] * subfac_03 + m[3] * subfac_05);
-    inverse[7] = +(m[0] * subfac_02 - m[1] * subfac_04 + m[2] * subfac_05);
-
-    inverse[8] = +(m[1] * subfac_06 - m[2] * subfac_07 + m[3] * subfac_08);
-    inverse[9] = -(m[0] * subfac_06 - m[2] * subfac_09 + m[3] * subfac_10);
-    inverse[10] = +(m[0] * subfac_07 - m[1] * subfac_09 + m[3] * subfac_11);
-    inverse[11] = -(m[0] * subfac_08 - m[1] * subfac_10 + m[2] * subfac_11);
-
-    inverse[12] = -(m[1] * subfac_12 - m[2] * subfac_13 + m[3] * subfac_14);
-    inverse[13] = +(m[0] * subfac_12 - m[2] * subfac_15 + m[3] * subfac_16);
-    inverse[14] = -(m[0] * subfac_13 - m[1] * subfac_15 + m[3] * subfac_17);
-    inverse[15] = +(m[0] * subfac_14 - m[1] * subfac_16 + m[2] * subfac_17);
-
-    const f32 det = m[0] * inverse[0] + m[1] * inverse[1] + m[2] * inverse[2] + m[3] * inverse[3];
+    const f32 a = m[0][0], b = m[0][1], c = m[0][2];
+    const f32 d = m[1][0], e = m[1][1], f = m[1][2];
+    const f32 g = m[2][0], h = m[2][1], i = m[2][2];
+    const f32 det = a * (e * i - f * h) - b * (d * i - f * g) + c * (d * h - e * g);
 
     if (std::abs(det) < VKEM_EPSILON) {
-        return Matrix4f(1.0f);
+        return Matrix3f(0.f);
     }
 
-    const f32 inv_det = 1.0f / det;
+    const f32 inv_det = 1.f / det;
+    Matrix3f result;
 
-    for (u32 i = 0; i < 16; ++i) {
-        inverse[i] *= inv_det;
+    result[0][0] = (e * i - f * h) * inv_det;
+    result[0][1] = (c * h - b * i) * inv_det;
+    result[0][2] = (b * f - c * e) * inv_det;
+    result[1][0] = (f * g - d * i) * inv_det;
+    result[1][1] = (a * i - c * g) * inv_det;
+    result[1][2] = (c * d - a * f) * inv_det;
+    result[2][0] = (d * h - e * g) * inv_det;
+    result[2][1] = (b * g - a * h) * inv_det;
+    result[2][2] = (a * e - b * d) * inv_det;
+
+    return result;
+}
+
+VKE_NODISCARD vke::maths::Matrix3f vke::maths::transpose(const Matrix3f &m)
+{
+    using size_type = typename Matrix4f::size_type;
+    Matrix3f result;
+
+    for (size_type col = 0; col < 3; ++col) {
+        for (size_type row = 0; row < 3; ++row) {
+            result[col][row] = m[row][col];
+        }
     }
 
-    /** m[row][col] <-> m[col][row] */
-    Matrix4f result;
+    return result;
+}
 
-    for (u32 row = 0; row < 4; ++row) {
-        for (u32 col = 0; col < 4; ++col) {
-            result[col * 4 + row] = inverse[row * 4 + col];
+VKE_NODISCARD vke::maths::Matrix4f vke::maths::inverseTranspose(const Matrix4f &m)
+{
+    using size_type = typename Matrix4f::size_type;
+    Matrix3f upper_left;
+
+    for (size_type col = 0; col < 3; ++col) {
+        for (size_type row = 0; row < 3; ++row) {
+            upper_left[col][row] = m[col][row];
+        }
+    }
+
+    const Matrix3f inverse_transpose = transpose(inverse(upper_left));
+    Matrix4f result(1.f);
+
+    for (size_type col = 0; col < 3; ++col) {
+        for (size_type row = 0; row < 3; ++row) {
+            result[col][row] = inverse_transpose[col][row];
         }
     }
 

@@ -43,19 +43,20 @@ void vke::event::MouseEvent::setButton(const Type &button_type)
 {
     switch (button_type) {
         case Type::Left:
-            _button.left = true ? false : true;
+            _button.left = !_button.left;
             break;
         case Type::Right:
-            _button.right = true ? false : true;
+            _button.right = !_button.right;
             break;
         case Type::Middle:
-            _button.middle = true ? false : true;
+            _button.middle = !_button.middle;
+            break;
+        case Type::None:
             break;
         default:
             break;
     }
 }
-
 void vke::event::MouseEvent::setButton(const MouseButton &button)
 {
     _button = button;
@@ -65,10 +66,12 @@ void vke::event::MouseEvent::setScroll(const Scroll &scroll)
 {
     switch (scroll) {
         case Scroll::Up:
-            _scroll.up = true ? false : true;
+            _scroll.up = !_scroll.up;
             break;
         case Scroll::Down:
-            _scroll.down = true ? false : true;
+            _scroll.down = !_scroll.down;
+            break;
+        case Scroll::None:
             break;
         default:
             break;

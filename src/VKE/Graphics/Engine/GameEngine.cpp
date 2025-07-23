@@ -38,9 +38,6 @@ void vke::GameEngine::renderLoop()
 
         _window->pollEvents();
         renderFrame();
-
-        //TODO: real timing bc this sucks
-        std::this_thread::sleep_for(std::chrono::milliseconds(16));
     }
 
     if (_device != VKE_NULLPTR) {

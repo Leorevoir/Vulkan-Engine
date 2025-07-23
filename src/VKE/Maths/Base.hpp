@@ -30,9 +30,7 @@
     VKE_MATHS_BASE_TEMPLATE(T)                                                                                                                                           \
     using Column = Vector<N, T>;                                                                                                                                         \
     using Row = Vector<M, T>;                                                                                                                                            \
-    static constexpr size_type rows = N;                                                                                                                                 \
-    static constexpr size_type cols = M;                                                                                                                                 \
-    static constexpr size_type size = N * M;
+    static constexpr size_type size = N;
 
 /** radians = degrees × (π / 180) */
 #define VKEM_DEG2RAD(x) ((x) * 0.01745329251994329576923690768489f)
