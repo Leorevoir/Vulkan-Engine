@@ -24,7 +24,6 @@ namespace detail {
 template<usize N, typename T>
 struct VKEM_API VectorData {
 
-        /* __data__ */
         T _data[N] = {0};
 };
 
@@ -290,7 +289,8 @@ struct VKEM_API Vector : public detail::VectorData<N, T> {
 template<usize N, typename T>
 VKE_INLINE VKE_CONSTEXPR bool operator==(const Vector<N, T> &a, const Vector<N, T> &b)
 {
-    for (usize i = 0; i < N; ++i) {
+    using size_type = typename Vector<N, T>::size_type;
+    for (size_type i = 0; i < N; ++i) {
 
         if (a[i] != b[i]) {
             return false;
