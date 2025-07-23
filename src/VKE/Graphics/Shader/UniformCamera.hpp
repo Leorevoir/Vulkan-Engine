@@ -12,7 +12,7 @@ class VKE_API UniformCamera : public VulkanUniform, public VulkanObject, public 
 {
     public:
         constexpr UniformCamera() = default;
-        ~UniformCamera() override = default;
+        ~UniformCamera() override;
 
         void initialize() override;
         void update() override;
