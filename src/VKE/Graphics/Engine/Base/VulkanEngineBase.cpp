@@ -1,7 +1,6 @@
+#include <VKE/Core/Time.hpp>
 #include <VKE/Error.hpp>
 #include <VKE/Graphics/Engine/Base/VulkanEngineBase.hpp>
-
-#include <chrono>
 
 /**
 * public
@@ -51,17 +50,15 @@ void vke::priv::VulkanEngineBase::renderFrame()
         return;
     }
 
-    const auto time_start = std::chrono::high_resolution_clock::now();
+    core::Time::getInstance().start();
 
     update();
     draw();
     render();
     build_command_buffer();
 
-    const auto time_end = std::chrono::high_resolution_clock::now();
-    const auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(time_end - time_start).count();
+    core::Time::getInstance().stop();
 
-    _frame_time = static_cast<f32>(duration) / 1000.0f;
     vkDeviceWaitIdle(_device);
 }
 
