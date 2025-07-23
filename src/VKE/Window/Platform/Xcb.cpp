@@ -1,13 +1,9 @@
-#ifndef VKE_USE_PLATFORM_XCB_KHR
-#define VKE_USE_PLATFORM_XCB_KHR
-#endif
-
 #if defined(VKE_USE_PLATFORM_XCB_KHR)
 
-#include <VKE/Error.hpp>
-#include <VKE/Memory.hpp>
-#include <VKE/Systems/MouseEvent.hpp>
-#include <VKE/Window/Platform/Xcb.hpp>
+    #include <VKE/Error.hpp>
+    #include <VKE/Memory.hpp>
+    #include <VKE/Systems/MouseEvent.hpp>
+    #include <VKE/Window/Platform/Xcb.hpp>
 
 /**
  * helpers
