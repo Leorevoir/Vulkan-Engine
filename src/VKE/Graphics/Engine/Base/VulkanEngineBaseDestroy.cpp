@@ -84,12 +84,7 @@ void vke::priv::VulkanEngineBase::_destroy_framebuffer()
 
 void vke::priv::VulkanEngineBase::_destroy_depth_stencil()
 {
-    if (_depth_stencil._image_view == VKE_NULLPTR) {
-        return;
-    }
-
-    vkDestroyImageView(_device, _depth_stencil._image_view, VKE_NULLPTR);
-    vkDestroyImage(_device, _depth_stencil._image, VKE_NULLPTR);
-    vkFreeMemory(_device, _depth_stencil._memory, VKE_NULLPTR);
-    _depth_stencil = {};
+    VKE_SAFE_CLEAN(_depth_stencil._image_view, vkDestroyImageView(_device, _depth_stencil._image_view, VKE_NULLPTR));
+    VKE_SAFE_CLEAN(_depth_stencil._image, vkDestroyImage(_device, _depth_stencil._image, VKE_NULLPTR));
+    VKE_SAFE_CLEAN(_depth_stencil._memory, vkFreeMemory(_device, _depth_stencil._memory, VKE_NULLPTR));
 }

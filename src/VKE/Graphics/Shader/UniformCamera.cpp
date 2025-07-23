@@ -8,6 +8,11 @@
 * public
 */
 
+vke::UniformCamera::~UniformCamera()
+{
+    _uniform_buffer.destroy();
+}
+
 void vke::UniformCamera::initialize()
 {
     VKE_ASSERT(_context->_device->createBuffer(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
