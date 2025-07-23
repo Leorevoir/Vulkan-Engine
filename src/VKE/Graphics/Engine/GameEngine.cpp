@@ -1,7 +1,6 @@
+#include <VKE/Core/Time.hpp>
 #include <VKE/Graphics/Engine/GameEngine.hpp>
-
-#include <chrono>
-#include <thread>
+#include <iostream>
 
 /**
 * public
@@ -38,6 +37,7 @@ void vke::GameEngine::renderLoop()
 
         _window->pollEvents();
         renderFrame();
+        std::cout << "FPS: " << core::Time::getInstance().getFPS() << std::endl;
     }
 
     if (_device != VKE_NULLPTR) {
