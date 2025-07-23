@@ -34,7 +34,7 @@ class VKE_API VKE_BackendWindow
         virtual void event() = 0;
         virtual void flush() = 0;
         virtual const char *getVulkanExtension() const = 0;
-        virtual void createVulkanSurface(VkInstance instance, VkSurfaceKHR &out_surface) = 0;
+        virtual void createVulkanSurface(VkInstance instance, VkSurfaceKHR &out_surface) const = 0;
 };
 
 }// namespace detail
