@@ -68,11 +68,11 @@ Test(Matrix, test_maths_matrix_methods)
     maths::Matrix4f mat4(0.411341f);
     glm::mat4 glm_mat4(0.411341f);
 
-    const f32 aspect_ratio = 1.f;
+    constexpr f32 aspect_ratio = 1.f;
 
-    const f32 fov = 60.f;
-    const f32 fov_rad = maths::radians(fov);
-    const f32 fov_rad_glm = glm::radians(fov);
+    constexpr f32 fov = 60.f;
+    constexpr f32 fov_rad = maths::radians(fov);
+    constexpr f32 fov_rad_glm = glm::radians(fov);
 
     cr_assert_eq(fov_rad, fov_rad_glm);
 

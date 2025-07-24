@@ -86,8 +86,7 @@ void vke::priv::VulkanEngineBase::_get_physical_device()
 
     vkGetDeviceQueue(_device, _vulkan_device->_queueFamilyIndices.graphics, 0, &_queue);
 
-    const u32 valid_format = getSuportedDepthFormat(_physical_device, &_depth_format);
-    assert(valid_format);
+    assert(getSuportedDepthFormat(_physical_device, &_depth_format));
 
     _swapchain.connect(_instance, _physical_device, _device);
 

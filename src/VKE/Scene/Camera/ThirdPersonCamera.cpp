@@ -4,7 +4,7 @@
 #include <VKE/Systems/MouseEvent.hpp>
 
 /** TODO: make parameters / setters configurable */
-#define TPC_ROTATION_SENSITIVITY 150.f
+#define TPC_ROTATION_SENSITIVITY 60.f
 #define TPC_ROTATION_SMOOTHING 8.f
 #define TPC_ZOOM_SENSITIVITY 2.f
 #define TPC_ZOOM_SMOOTHING 5.f

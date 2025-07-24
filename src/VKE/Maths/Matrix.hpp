@@ -1,6 +1,5 @@
 #pragma once
 
-#include "VKE/Macros.hpp"
 #include <VKE/Maths/Vector.hpp>
 
 #include <VKE/Types.hpp>
@@ -19,11 +18,14 @@ struct VKEM_API Matrix {
 
         VKE_NODISCARD VKE_INLINE VKE_CONSTEXPR explicit Matrix(const T &value)
         {
+            /** @brief fill each column with 0 */
             for (size_type i = 0; i < M; ++i) {
+                _columns[i] = Column(T(0));
+            }
 
-                for (size_type j = 0; j < N; ++j) {
-                    _columns[i][j] = (i == j) ? value : T(0);
-                }
+            /** @brief fill the diagonal witht the given value */
+            for (size_type i = 0; i < __min_dim; ++i) {
+                _columns[i][i] = value;
             }
         }
 
@@ -31,7 +33,7 @@ struct VKEM_API Matrix {
         {
             Matrix result(T(0));
 
-            for (size_type i = 0; i < std::min(N, M); ++i) {
+            for (size_type i = 0; i < __min_dim; ++i) {
                 result[i][i] = T(1);
             }
             return result;
@@ -83,6 +85,7 @@ struct VKEM_API Matrix {
         }
 
     private:
+        static constexpr size_type __min_dim = (N < M) ? N : M;
         Column _columns[M] = {};
 };
 
