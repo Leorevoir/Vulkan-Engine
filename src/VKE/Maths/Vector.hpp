@@ -77,7 +77,7 @@ struct VKEM_API VectorData<4, T> {
                 struct {
                         T s, t, p, q;
                 };
-                T _data[2];
+                T _data[4];
         };
 };
 
@@ -101,7 +101,9 @@ struct VKEM_API Vector : public detail::VectorData<N, T> {
 
         VKE_NODISCARD VKE_INLINE VKE_CONSTEXPR Vector(const T &value)
         {
-            std::fill(this->_data.begin(), this->_data.end(), value);
+            for (size_type i = 0; i < N; ++i) {
+                this->_data[i] = value;
+            }
         }
 
         VKE_NODISCARD VKE_INLINE VKE_CONSTEXPR Vector(const std::initializer_list<T> &il)
