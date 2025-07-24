@@ -4,9 +4,9 @@
 
 Test(Vector, test_maths_vector)
 {
-    vke::maths::Vector<3, f32> vec1(1.f, 2.f, 3.f);
-    vke::maths::Vector<2, u32> vec2(4u, 5u);
-    vke::maths::Vector<1, i64> vec3(6ll);
+    constexpr vke::maths::Vector<3, f32> vec1(1.f, 2.f, 3.f);
+    constexpr vke::maths::Vector<2, u32> vec2(4u, 5u);
+    constexpr vke::maths::Vector<1, i64> vec3(6ll);
 
     cr_assert_eq(vec1[0], 1.f);
     cr_assert_eq(vec1[1], 2.f);
@@ -33,11 +33,11 @@ Test(Vector, test_maths_vector_normalization)
 
 Test(Vector, test_maths_vector_operations)
 {
-    const vke::maths::Vector<3, f32> vec1(1.f, 2.f, 3.f);
-    const vke::maths::Vector<3, f32> vec2(4.f, 5.f, 6.f);
-    const auto sum = vec1 + vec2;
-    const auto diff = vec1 - vec2;
-    const auto scaled = vec1 * 2.f;
+    constexpr vke::maths::Vector<3, f32> vec1(1.f, 2.f, 3.f);
+    constexpr vke::maths::Vector<3, f32> vec2(4.f, 5.f, 6.f);
+    constexpr auto sum = vec1 + vec2;
+    constexpr auto diff = vec1 - vec2;
+    constexpr auto scaled = vec1 * 2.f;
 
     cr_assert_eq(sum[0], 5.f);
     cr_assert_eq(sum[1], 7.f);
@@ -52,8 +52,8 @@ Test(Vector, test_maths_vector_operations)
 
 Test(Vector, test_maths_vector_cross_product)
 {
-    const vke::maths::Vector<3, f32> vec1(1.f, 2.f, 3.f);
-    const vke::maths::Vector<3, f32> vec2(4.f, 5.f, 6.f);
+    constexpr vke::maths::Vector<3, f32> vec1(1.f, 2.f, 3.f);
+    constexpr vke::maths::Vector<3, f32> vec2(4.f, 5.f, 6.f);
     const auto cross = vec1.cross(vec2);
 
     cr_assert_eq(cross[0], -3.f);
@@ -63,9 +63,9 @@ Test(Vector, test_maths_vector_cross_product)
 
 Test(Vector, test_maths_vector_dot_product)
 {
-    const vke::maths::Vector<3, f32> vec1(1.f, 2.f, 3.f);
-    const vke::maths::Vector<3, f32> vec2(4.f, 5.f, 6.f);
-    const auto dot = vec1.dot(vec2);
+    constexpr vke::maths::Vector<3, f32> vec1(1.f, 2.f, 3.f);
+    constexpr vke::maths::Vector<3, f32> vec2(4.f, 5.f, 6.f);
+    constexpr auto dot = vec1.dot(vec2);
 
     cr_assert_eq(dot, 32.f);
 }
