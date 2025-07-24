@@ -1,7 +1,7 @@
 #include <VKE/Error.hpp>
+#include <VKE/Graphics/Shader/VulkanShader.hpp>
+
 #include <VKE/Graphics/Pipelines/VulkanPipelines.hpp>
-#include <VKE/Types.hpp>
-#include <cassert>
 
 /**
  * helpers

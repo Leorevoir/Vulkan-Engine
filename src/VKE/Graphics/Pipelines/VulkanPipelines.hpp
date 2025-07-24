@@ -3,11 +3,11 @@
 #include <VKE/Backend.hpp>
 #include <VKE/Macros.hpp>
 
-#include <VKE/Graphics/Shader/VulkanShader.hpp>
-
 #include <memory>
 
 namespace vke {
+
+class VulkanShader;
 
 namespace priv {
 
