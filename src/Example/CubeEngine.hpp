@@ -1,8 +1,6 @@
 #pragma once
 
 #include "VKE/Graphics/Engine/GameEngine.hpp"
-#include "VKE/Graphics/Shader/UniformCamera.hpp"
-#include "VKE/Graphics/Shader/VulkanShader.hpp"
 #include "VKE/Meshes/MeshCube.hpp"
 
 #include <memory>
@@ -19,6 +17,4 @@ class CubeEngine final : public vke::GameEngine
 
     private:
         std::shared_ptr<vke::MeshCube> _mesh;
-        std::shared_ptr<vke::VulkanShader> _shader;
-        std::shared_ptr<vke::UniformCamera> _uniform;
 };

@@ -4,11 +4,8 @@
 #include <VKE/Macros.hpp>
 
 #include <VKE/Graphics/Context/VulkanContext.hpp>
-#include <VKE/Graphics/Descriptor/VulkanDescriptorSet.hpp>
 #include <VKE/Graphics/Descriptor/VulkanVertexDescriptor.hpp>
-#include <VKE/Graphics/Device/VulkanDevice.hpp>
 #include <VKE/Graphics/Engine/VulkanEngineInterface.hpp>
-#include <VKE/Graphics/Pipelines/VulkanPipelines.hpp>
 #include <VKE/Graphics/Swapchain/VulkanSwapchain.hpp>
 
 #include <memory>
@@ -117,6 +114,7 @@ class VKE_API VulkanEngineBase : public VulkanEngineInterface
         void _create_render_pass();
         void _create_pipeline_cache();
         void _create_framebuffer();
+        void _create_context();
 
         /** draw */
         void _acquire_frame();

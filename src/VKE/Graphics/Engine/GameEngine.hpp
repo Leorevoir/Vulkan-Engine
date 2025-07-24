@@ -19,8 +19,6 @@ class VKE_API GameEngine : public priv::VulkanEngineBase
         void renderLoop();
         void draw() override;
         void update() override;
-
-    private:
 };
 
 }// namespace vke

@@ -29,15 +29,7 @@ void vke::priv::VulkanEngineBase::start()
     _create_render_pass();
     _create_pipeline_cache();
     _create_framebuffer();
-    _descriptor_set = std::make_unique<VulkanDescriptorSet>(_device);
-    _vertex_descriptor = std::make_unique<VulkanVertexDescriptor>();
-    _pipelines = std::make_unique<VulkanPipelines>(_device, _vertex_descriptor->getState(), _pipeline_cache);
-    _context = std::make_shared<VulkanContext>(_vulkan_device.get(), &_size);
-    _context->_cmd_pool = _command_pool;
-    _context->_pipeline_layout = &_pipeline_layout;
-    _context->_pipeline_cache = _pipeline_cache;
-    _context->_render_pass = _render_pass;
-    _context->_queue = _queue;
+    _create_context();
 }
 
 /**

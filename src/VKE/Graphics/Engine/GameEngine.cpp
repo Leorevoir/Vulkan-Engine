@@ -37,7 +37,7 @@ void vke::GameEngine::renderLoop()
 
         _window->pollEvents();
         renderFrame();
-        std::cout << "FPS: " << core::Time::getInstance().getFPS() << std::endl;
+        // std::cout << "FPS: " << core::Time::getInstance().getFPS() << std::endl;
     }
 
     if (_device != VKE_NULLPTR) {
@@ -54,3 +54,7 @@ void vke::GameEngine::update()
 {
     /* __update__ */
 }
+
+/**
+* private
+*/
