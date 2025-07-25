@@ -1,4 +1,5 @@
 #include <VKE/Error.hpp>
+#include <VKE/Systems/MouseEvent.hpp>
 #include <VKE/Window/Window.hpp>
 
 #if defined(VKE_USE_PLATFORM_XCB_KHR)
@@ -19,11 +20,6 @@ vke::Window::Window(const maths::Vector2u &size, const std::string &title) : _ti
 #else
     throw vke::exception::NotImplemented("vke::Window::Window", "Platform not supported");
 #endif
-}
-
-vke::Window::~Window()
-{
-    /* __dtor__ */
 }
 
 void vke::Window::createVulkanSurface(VkInstance instance, VkSurfaceKHR &out_surface) const
@@ -48,6 +44,8 @@ const char *vke::Window::getVulkanExtension() const
 
 void vke::Window::pollEvents()
 {
+    event::MouseEvent::getInstance().reset();
+
     _vk_backend->event();
 }
 

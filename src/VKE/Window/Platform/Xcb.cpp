@@ -18,7 +18,12 @@ static xcb_intern_atom_reply_t *_inter_atom_helper(xcb_connection_t *conn, bool 
 
     #define VKE_XCB_INTERN_ATOM(conn, only_if_exists, str) _inter_atom_helper(conn, only_if_exists, str)
 
-    #define VKE_XCB_WINDOW_MOUSE_EVENTS(mouse_button, type)                                                                                                              \
+    #define VKE_XCB_EVENT_MASKS                                                                                                                                          \
+        XCB_EVENT_MASK_KEY_RELEASE | XCB_EVENT_MASK_KEY_PRESS | XCB_EVENT_MASK_EXPOSURE | XCB_EVENT_MASK_STRUCTURE_NOTIFY | XCB_EVENT_MASK_POINTER_MOTION                \
+            | XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE
+
+    #define VKE_XCB_WINDOW_MOUSE_EVENTS(type)                                                                                                                            \
+        auto &mouse_button = event::MouseEvent::getInstance();                                                                                                           \
         switch (type) {                                                                                                                                                  \
             case XCB_BUTTON_INDEX_1:                                                                                                                                     \
                 mouse_button.setButton(event::MouseEvent::Type::Left);                                                                                                   \
@@ -170,16 +175,14 @@ void vke::detail::VKE_XCBWindow::_handle_events(xcb_generic_event_t *event)
 
         case XCB_BUTTON_PRESS: {
             const xcb_button_press_event_t *b = reinterpret_cast<xcb_button_press_event_t *>(event);
-            auto &mouse_button = event::MouseEvent::getInstance();
-            VKE_XCB_WINDOW_MOUSE_EVENTS(mouse_button, b->detail);
+            VKE_XCB_WINDOW_MOUSE_EVENTS(b->detail);
             }
             break;
         }
 
         case XCB_BUTTON_RELEASE: {
             const xcb_button_release_event_t *b = reinterpret_cast<xcb_button_release_event_t *>(event);
-            auto &mouse_button = event::MouseEvent::getInstance();
-            VKE_XCB_WINDOW_MOUSE_EVENTS(mouse_button, b->detail);
+            VKE_XCB_WINDOW_MOUSE_EVENTS(b->detail);
             }
             break;
         }
