@@ -1,6 +1,6 @@
+#include <VKE/Camera/ThirdPersonCamera.hpp>
 #include <VKE/Core/Time.hpp>
 #include <VKE/Maths/Maths.hpp>
-#include <VKE/Scene/Camera/ThirdPersonCamera.hpp>
 #include <VKE/Systems/MouseEvent.hpp>
 
 /** TODO: make parameters / setters configurable */

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "VKE/Graphics/Engine/GameEngine.hpp"
-#include "VKE/Meshes/MeshCube.hpp"
+#include <VKE/Graphics/Engine/GameEngine.hpp>
+#include <VKE/Meshes/MeshCube.hpp>
 
 #include <memory>
 
