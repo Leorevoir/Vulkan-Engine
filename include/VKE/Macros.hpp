@@ -15,6 +15,7 @@
 #endif
 
 #define VKE_HIDDEN __attribute__((visibility("hidden")))
+#define VKE_MAYBE_UNUSED __attribute__((unused))
 
 /**
  * NOTE: if you want to change the default path, you can define VKE_DEFAULT_PATH

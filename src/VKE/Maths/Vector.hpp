@@ -419,4 +419,6 @@ using Vector4f = Vector4<f32>;
 using Vector2u = Vector2<u32>;
 using Vector2i = Vector2<i32>;
 
+using Color = Vector4f;
+
 }// namespace vke::maths

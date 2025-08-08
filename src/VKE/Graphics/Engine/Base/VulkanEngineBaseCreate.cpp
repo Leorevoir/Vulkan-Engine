@@ -298,3 +298,15 @@ void vke::priv::VulkanEngineBase::_create_framebuffer()
         VKE_ASSERT(vkCreateFramebuffer(_device, &framebuffer_create_info, VKE_NULLPTR, &_framebuffers[i]));
     }
 }
+
+void vke::priv::VulkanEngineBase::_create_context()
+{
+    _descriptor_set = std::make_unique<VulkanDescriptorSet>(_device);
+    _vertex_descriptor = std::make_unique<VulkanVertexDescriptor>();
+    _pipelines = std::make_unique<VulkanPipelines>(_device, _vertex_descriptor->getState(), _pipeline_cache);
+
+    _context = std::make_shared<VulkanContext>(_vulkan_device.get(), &_size);
+    _context->setPipelines(_pipelines.get());
+    _context->setRenderPass(&_render_pass);
+    _context->setDescriptorSet(_descriptor_set.get());
+}

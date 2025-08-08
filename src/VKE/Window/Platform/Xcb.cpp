@@ -1,24 +1,47 @@
-#ifndef VKE_USE_PLATFORM_XCB_KHR
-#define VKE_USE_PLATFORM_XCB_KHR
-#endif
-
 #if defined(VKE_USE_PLATFORM_XCB_KHR)
 
-#include <VKE/Error.hpp>
-#include <VKE/Memory.hpp>
-#include <VKE/Systems/MouseEvent.hpp>
-#include <VKE/Window/Platform/Xcb.hpp>
+    #include <VKE/Error.hpp>
+    #include <VKE/Memory.hpp>
+    #include <VKE/Systems/MouseEvent.hpp>
+    #include <VKE/Window/Platform/Xcb.hpp>
 
 /**
  * helpers
  */
 
-static inline xcb_intern_atom_reply_t *_inter_atom_helper(xcb_connection_t *conn, bool only_if_exists, const char *str)
+static xcb_intern_atom_reply_t *_inter_atom_helper(xcb_connection_t *conn, bool only_if_exists, const char *str)
 {
     const xcb_intern_atom_cookie_t cookie = xcb_intern_atom(conn, only_if_exists, static_cast<u16>(std::strlen(str)), str);
 
     return xcb_intern_atom_reply(conn, cookie, NULL);
 }
+
+    #define VKE_XCB_INTERN_ATOM(conn, only_if_exists, str) _inter_atom_helper(conn, only_if_exists, str)
+
+    #define VKE_XCB_EVENT_MASKS                                                                                                                                          \
+        XCB_EVENT_MASK_KEY_RELEASE | XCB_EVENT_MASK_KEY_PRESS | XCB_EVENT_MASK_EXPOSURE | XCB_EVENT_MASK_STRUCTURE_NOTIFY | XCB_EVENT_MASK_POINTER_MOTION                \
+            | XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE
+
+    #define VKE_XCB_WINDOW_MOUSE_EVENTS(type)                                                                                                                            \
+        auto &mouse_button = event::MouseEvent::getInstance();                                                                                                           \
+        switch (type) {                                                                                                                                                  \
+            case XCB_BUTTON_INDEX_1:                                                                                                                                     \
+                mouse_button.setButton(event::MouseEvent::Type::Left);                                                                                                   \
+                break;                                                                                                                                                   \
+            case XCB_BUTTON_INDEX_2:                                                                                                                                     \
+                mouse_button.setButton(event::MouseEvent::Type::Middle);                                                                                                 \
+                break;                                                                                                                                                   \
+            case XCB_BUTTON_INDEX_3:                                                                                                                                     \
+                mouse_button.setButton(event::MouseEvent::Type::Right);                                                                                                  \
+                break;                                                                                                                                                   \
+            case XCB_BUTTON_INDEX_4:                                                                                                                                     \
+                mouse_button.setScroll(event::MouseEvent::Scroll::Up);                                                                                                   \
+                break;                                                                                                                                                   \
+            case XCB_BUTTON_INDEX_5:                                                                                                                                     \
+                mouse_button.setScroll(event::MouseEvent::Scroll::Down);                                                                                                 \
+                break;                                                                                                                                                   \
+            default:                                                                                                                                                     \
+                break;
 
 /**
 * public
@@ -137,8 +160,8 @@ void vke::detail::VKE_XCBWindow::_setup()
     xcb_create_window(_connection, XCB_COPY_FROM_PARENT, _window, _screen->root, 0, 0, static_cast<u16>(_size.width), static_cast<u16>(_size.height), 0,
         XCB_WINDOW_CLASS_INPUT_OUTPUT, _screen->root_visual, value_mask, value_list);
 
-    xcb_intern_atom_reply_t *reply_protocols = _inter_atom_helper(_connection, true, "WM_PROTOCOLS");
-    xcb_intern_atom_reply_t *reply_delete = _inter_atom_helper(_connection, false, "WM_DELETE_WINDOW");
+    xcb_intern_atom_reply_t *reply_protocols = VKE_XCB_INTERN_ATOM(_connection, true, "WM_PROTOCOLS");
+    xcb_intern_atom_reply_t *reply_delete = VKE_XCB_INTERN_ATOM(_connection, false, "WM_DELETE_WINDOW");
 
     xcb_change_property(_connection, XCB_PROP_MODE_REPLACE, _window, reply_protocols->atom, 4, 32, 1, &reply_delete->atom);
     _atom_wm_delete_window = reply_delete;
@@ -152,47 +175,14 @@ void vke::detail::VKE_XCBWindow::_handle_events(xcb_generic_event_t *event)
 
         case XCB_BUTTON_PRESS: {
             const xcb_button_press_event_t *b = reinterpret_cast<xcb_button_press_event_t *>(event);
-            auto &mouse_button = event::MouseEvent::getInstance();
-
-            switch (b->detail) {
-                case XCB_BUTTON_INDEX_1:
-                    mouse_button.setButton(event::MouseEvent::Type::Left);
-                    break;
-                case XCB_BUTTON_INDEX_2:
-                    mouse_button.setButton(event::MouseEvent::Type::Middle);
-                    break;
-                case XCB_BUTTON_INDEX_3:
-                    mouse_button.setButton(event::MouseEvent::Type::Right);
-                    break;
-                case XCB_BUTTON_INDEX_4:
-                    mouse_button.setScroll(event::MouseEvent::Scroll::Up);
-                    break;
-                case XCB_BUTTON_INDEX_5:
-                    mouse_button.setScroll(event::MouseEvent::Scroll::Down);
-                    break;
-                default:
-                    break;
+            VKE_XCB_WINDOW_MOUSE_EVENTS(b->detail);
             }
             break;
         }
 
         case XCB_BUTTON_RELEASE: {
             const xcb_button_release_event_t *b = reinterpret_cast<xcb_button_release_event_t *>(event);
-            auto &mouse_button = event::MouseEvent::getInstance();
-
-            switch (b->detail) {
-                case XCB_BUTTON_INDEX_1:
-                    mouse_button.setButton(event::MouseEvent::Type::Left);
-                    break;
-                case XCB_BUTTON_INDEX_2:
-                    mouse_button.setButton(event::MouseEvent::Type::Middle);
-                    break;
-                case XCB_BUTTON_INDEX_3:
-                    mouse_button.setButton(event::MouseEvent::Type::Right);
-                    break;
-                default:
-                    mouse_button.setButton(event::MouseEvent::Type::None);
-                    break;
+            VKE_XCB_WINDOW_MOUSE_EVENTS(b->detail);
             }
             break;
         }
@@ -239,6 +229,6 @@ void vke::detail::VKE_XCBWindow::_handle_events(xcb_generic_event_t *event)
     }
 }
 
-// clang-format on
+    // clang-format on
 
 #endif

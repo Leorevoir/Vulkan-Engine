@@ -12,7 +12,7 @@ class VKE_API Window final
 
     public:
         explicit Window(const maths::Vector2u &size, const std::string &title = "VKE Window");
-        ~Window();
+        ~Window() = default;
 
         void createVulkanSurface(VkInstance instance, VkSurfaceKHR &out_surface) const;
 

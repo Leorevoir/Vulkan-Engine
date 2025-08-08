@@ -5,10 +5,6 @@
     #include <VKE/Macros.hpp>
     #include <VKE/Window/Platform/Base.hpp>
 
-    #define VKE_XCB_EVENT_MASKS                                                                                                                                          \
-        XCB_EVENT_MASK_KEY_RELEASE | XCB_EVENT_MASK_KEY_PRESS | XCB_EVENT_MASK_EXPOSURE | XCB_EVENT_MASK_STRUCTURE_NOTIFY | XCB_EVENT_MASK_POINTER_MOTION                \
-            | XCB_EVENT_MASK_BUTTON_PRESS | XCB_EVENT_MASK_BUTTON_RELEASE
-
 namespace vke {
 
 namespace detail {

@@ -1,13 +1,13 @@
+#include <VKE/Camera/ThirdPersonCamera.hpp>
 #include <VKE/Core/Time.hpp>
 #include <VKE/Maths/Maths.hpp>
-#include <VKE/Scene/Camera/ThirdPersonCamera.hpp>
 #include <VKE/Systems/MouseEvent.hpp>
 
 /** TODO: make parameters / setters configurable */
-#define TPC_ROTATION_SENSITIVITY 60.f
-#define TPC_ROTATION_SMOOTHING 8.f
-#define TPC_ZOOM_SENSITIVITY 2.f
-#define TPC_ZOOM_SMOOTHING 5.f
+#define TPC_ROTATION_SENSITIVITY 30.f
+#define TPC_ROTATION_SMOOTHING 3.f
+#define TPC_ZOOM_SENSITIVITY 10.f
+#define TPC_ZOOM_SMOOTHING 3.f
 #define TPC_MAX_VERTICAL_ANGLE 89.f
 
 /**

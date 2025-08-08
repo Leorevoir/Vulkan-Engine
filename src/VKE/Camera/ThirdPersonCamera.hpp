@@ -19,7 +19,7 @@ class VKE_API ThirdPersonCamera
         maths::Vector3f _camera_rotation = {};
         maths::Vector3f _target_rotation = {};
         f32 _target_zoom = 5.f;
-        f32 _camera_zoom = -2.f;
+        f32 _camera_zoom = 5.f;
         f32 _camera_distance = 5.f;
 
     private:

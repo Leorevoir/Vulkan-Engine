@@ -1,10 +1,10 @@
 #pragma once
 
 #include <VKE/Backend.hpp>
+#include <VKE/Camera/Camera.hpp>
+#include <VKE/Camera/ThirdPersonCamera.hpp>
 #include <VKE/Graphics/Shader/Base/VulkanUniformBase.hpp>
 #include <VKE/Graphics/VulkanObject.hpp>
-#include <VKE/Scene/Camera/Camera.hpp>
-#include <VKE/Scene/Camera/ThirdPersonCamera.hpp>
 
 namespace vke {
 

@@ -14,7 +14,7 @@ vke::priv::VulkanDevice::VulkanDevice(VkPhysicalDevice physical_device)
     vkGetPhysicalDeviceFeatures(_physicalDevice, &_features);
     vkGetPhysicalDeviceMemoryProperties(_physicalDevice, &_memoryProperties);
 
-    uint32_t queue_family_count = 0;
+    u32 queue_family_count = 0;
 
     vkGetPhysicalDeviceQueueFamilyProperties(_physicalDevice, &queue_family_count, VKE_NULLPTR);
     assert(queue_family_count > 0);
@@ -86,7 +86,7 @@ u32 vke::priv::VulkanDevice::getQueueFamilyIndex(VkQueueFlagBits queue_flags) co
 
     if (queue_flags & VK_QUEUE_TRANSFER_BIT) {
 
-        for (uint32_t i = 0; i < static_cast<uint32_t>(_queueFamilyProperties.size()); i++) {
+        for (u32 i = 0; i < static_cast<u32>(_queueFamilyProperties.size()); i++) {
             if ((_queueFamilyProperties[i].queueFlags & static_cast<u32>(queue_flags)) && ((_queueFamilyProperties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) == 0)
                 && ((_queueFamilyProperties[i].queueFlags & VK_QUEUE_COMPUTE_BIT) == 0)) {
                 return i;
@@ -94,7 +94,7 @@ u32 vke::priv::VulkanDevice::getQueueFamilyIndex(VkQueueFlagBits queue_flags) co
         }
     }
 
-    for (uint32_t i = 0; i < static_cast<uint32_t>(_queueFamilyProperties.size()); i++) {
+    for (u32 i = 0; i < static_cast<u32>(_queueFamilyProperties.size()); i++) {
         if (_queueFamilyProperties[i].queueFlags & static_cast<u32>(queue_flags)) {
             return i;
             break;
@@ -160,7 +160,7 @@ VkResult vke::priv::VulkanDevice::createLogicalDevice(VkPhysicalDeviceFeatures e
 
     VkDeviceCreateInfo deviceCreateInfo = {};
     deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-    deviceCreateInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
+    deviceCreateInfo.queueCreateInfoCount = static_cast<u32>(queueCreateInfos.size());
     ;
     deviceCreateInfo.pQueueCreateInfos = queueCreateInfos.data();
     deviceCreateInfo.pEnabledFeatures = &enabled_features;

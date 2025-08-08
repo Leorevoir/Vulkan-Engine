@@ -11,6 +11,11 @@ vke::event::MouseEvent &vke::event::MouseEvent::getInstance()
     return instance;
 }
 
+void vke::event::MouseEvent::reset()
+{
+    _scroll = {false, false};
+}
+
 /**
 * getters
 */
@@ -52,6 +57,7 @@ void vke::event::MouseEvent::setButton(const Type &button_type)
             _button.middle = !_button.middle;
             break;
         case Type::None:
+            _button = {false, false, false};
             break;
         default:
             break;
@@ -66,12 +72,13 @@ void vke::event::MouseEvent::setScroll(const Scroll &scroll)
 {
     switch (scroll) {
         case Scroll::Up:
-            _scroll.up = !_scroll.up;
+            _scroll = {true, false};
             break;
         case Scroll::Down:
-            _scroll.down = !_scroll.down;
+            _scroll = {false, true};
             break;
         case Scroll::None:
+            _scroll = {false, false};
             break;
         default:
             break;

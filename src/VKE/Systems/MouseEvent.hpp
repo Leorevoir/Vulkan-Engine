@@ -16,6 +16,8 @@ class VKE_API MouseEvent final : public NonCopyable
         enum class Type { Left, Right, Middle, None };
         enum class Scroll { Up, Down, None };
 
+        void reset();
+
         /** getters */
         const MousePosition &getPosition() const;
         const MouseButton &getButton() const;

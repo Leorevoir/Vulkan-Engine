@@ -15,7 +15,9 @@ vke::UniformCamera::~UniformCamera()
 
 void vke::UniformCamera::initialize()
 {
-    VKE_ASSERT(_context->_device->createBuffer(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &_buffer,
+    auto device = _context->getDevice();
+
+    VKE_ASSERT(device->createBuffer(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &_buffer,
         sizeof(_camera), &_camera));
     VKE_ASSERT(_buffer.map());
     update();
@@ -34,7 +36,8 @@ void vke::UniformCamera::update()
 void vke::UniformCamera::updateCameraMatrix()
 {
     constexpr f32 radians = maths::radians(TEST_FOV);
-    const f32 ratio = static_cast<f32>(_context->_screen_size->width) / static_cast<f32>(_context->_screen_size->height);
+    const auto screen_size = _context->getScreenSize();
+    const f32 ratio = static_cast<f32>(screen_size->width) / static_cast<f32>(screen_size->height);
 
     _camera._projection = maths::perspective(radians, ratio, 0.001f, 256.f);
     _camera._view = maths::translate(maths::Matrix4f::Identity(), maths::Vector3f(0.f, 0.f, -_camera_zoom));

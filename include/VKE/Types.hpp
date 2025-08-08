@@ -10,19 +10,19 @@ struct NonCopyable {
 
         inline constexpr NonCopyable() = default;
 
-        NonCopyable(const NonCopyable &) = delete;
-        NonCopyable &operator=(const NonCopyable &) = delete;
+        inline constexpr NonCopyable(const NonCopyable &) = delete;
+        inline constexpr NonCopyable &operator=(const NonCopyable &) = delete;
 
-        NonCopyable(NonCopyable &&) = default;
-        NonCopyable &operator=(NonCopyable &&) = default;
+        inline constexpr NonCopyable(NonCopyable &&) = default;
+        inline constexpr NonCopyable &operator=(NonCopyable &&) = default;
 };
 
 struct NonMovable {
 
         inline constexpr NonMovable() = default;
 
-        NonMovable(const NonMovable &&) = delete;
-        NonMovable &operator=(const NonMovable &&) = delete;
+        inline constexpr NonMovable(const NonMovable &&) = delete;
+        inline constexpr NonMovable &operator=(const NonMovable &&) = delete;
 };
 
 }// namespace vke
