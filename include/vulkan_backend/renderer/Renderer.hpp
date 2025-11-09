@@ -1,42 +1,54 @@
 #pragma once
 
-#include "vulkan_backend/commands/CommandBuffer.hpp"
-#include "vulkan_backend/commands/CommandPool.hpp"
-#include "vulkan_backend/core/Device.hpp"
-#include "vulkan_backend/core/Instance.hpp"
-#include "vulkan_backend/pipeline/Pipeline.hpp"
-#include "vulkan_backend/pipeline/RenderPass.hpp"
-#include "vulkan_backend/resources/Framebuffer.hpp"
-#include "vulkan_backend/surface/Surface.hpp"
-#include "vulkan_backend/surface/SwapChain.hpp"
-#include "vulkan_backend/sync/SyncManager.hpp"
+#include <vulkan_backend/Backend.hpp>
+#include <vulkan_backend/commands/CommandBuffer.hpp>
+#include <vulkan_backend/commands/CommandPool.hpp>
+#include <vulkan_backend/core/Device.hpp>
+#include <vulkan_backend/core/Instance.hpp>
+#include <vulkan_backend/pipeline/Pipeline.hpp>
+#include <vulkan_backend/pipeline/RenderPass.hpp>
+#include <vulkan_backend/resources/Framebuffer.hpp>
+#include <vulkan_backend/surface/Surface.hpp>
+#include <vulkan_backend/surface/SwapChain.hpp>
+#include <vulkan_backend/sync/SyncManager.hpp>
 
 #include <memory>
+#include <optional>
 #include <vector>
 
-struct GLFWwindow;
-
 namespace lumen {
+
+class RenderWindow;
 
 class Renderer
 {
     public:
-        explicit Renderer(GLFWwindow *window);
+        explicit Renderer(RenderWindow &window);
         ~Renderer();
 
         Renderer(const Renderer &) = delete;
         Renderer &operator=(const Renderer &) = delete;
+        Renderer(Renderer &&) = delete;
+        Renderer &operator=(Renderer &&) = delete;
 
         void draw_frame();
-        void notify_framebuffer_resized();
 
     private:
+        struct FrameData {
+                VkCommandBuffer command_buffer;
+                uint32_t image_index;
+        };
+
         void _init_vulkan();
         void _create_framebuffers();
         void _cleanup_swap_chain();
         void _recreate_swap_chain();
 
-        GLFWwindow *_window;
+        std::optional<FrameData> _begin_frame();
+        void _record_draw_commands(const FrameData &frame);
+        void _end_frame(const FrameData &frame);
+
+        RenderWindow &_window;
 
         std::unique_ptr<Instance> _instance;
         std::unique_ptr<Surface> _surface;

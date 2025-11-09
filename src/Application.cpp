@@ -1,5 +1,8 @@
-#include "Application.hpp"
-#include "vulkan_backend/utils/Config.hpp"
+#include <Application.hpp>
+
+#include <vulkan_backend/renderer/RenderWindow.hpp>
+#include <vulkan_backend/renderer/Renderer.hpp>
+#include <vulkan_backend/utils/Config.hpp>
 
 /**
 * public
@@ -7,13 +10,13 @@
 
 lumen::Application::Application()
 {
-    _init_window();
-    _renderer = std::make_unique<Renderer>(_window);
+    _window = std::make_unique<RenderWindow>("Lumen Engine", config::WINDOW_WIDTH, config::WINDOW_HEIGHT);
+    _renderer = std::make_unique<Renderer>(*_window);
 }
 
 lumen::Application::~Application()
 {
-    _cleanup();
+    /* __dtor__ */
 }
 
 void lumen::Application::run()
@@ -25,39 +28,10 @@ void lumen::Application::run()
 * private
 */
 
-void lumen::Application::_init_window()
-{
-    glfwInit();
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
-
-    _window = glfwCreateWindow(config::WINDOW_WIDTH, config::WINDOW_HEIGHT, "Lumen Engine", nullptr, nullptr);
-
-    glfwSetWindowUserPointer(_window, this);
-    glfwSetFramebufferSizeCallback(_window, _framebuffer_resize_callback);
-}
-
 void lumen::Application::_main_loop()
 {
-    while (!glfwWindowShouldClose(_window)) {
-        glfwPollEvents();
+    while (!_window->should_close()) {
+        _window->poll_events();
         _renderer->draw_frame();
-    }
-}
-
-void lumen::Application::_cleanup()
-{
-    _renderer.reset();
-
-    glfwDestroyWindow(_window);
-    glfwTerminate();
-}
-
-void lumen::Application::_framebuffer_resize_callback(GLFWwindow *window, [[maybe_unused]] int width, [[maybe_unused]] int height)
-{
-    auto app = reinterpret_cast<Application *>(glfwGetWindowUserPointer(window));
-
-    if (app && app->_renderer) {
-        app->_renderer->notify_framebuffer_resized();
     }
 }

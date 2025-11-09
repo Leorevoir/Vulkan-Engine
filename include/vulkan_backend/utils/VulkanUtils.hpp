@@ -1,10 +1,10 @@
 #pragma once
 
-#include <fstream>
+#include <vulkan_backend/Backend.hpp>
+
 #include <optional>
 #include <string>
 #include <vector>
-#include <vulkan/vulkan.h>
 
 namespace lumen {
 

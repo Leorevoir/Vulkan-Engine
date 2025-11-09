@@ -11,12 +11,12 @@ lumen::SyncManager::SyncManager(Device &device, size_t maxFramesInFlight, uint32
     _inFlightFences.resize(maxFramesInFlight);
     _renderFinishedSemaphores.resize(imageCount);
 
-    for (size_t i = 0; i < maxFramesInFlight; i++) {
+    for (size_t i = 0; i < maxFramesInFlight; ++i) {
         _imageAvailableSemaphores[i] = std::make_unique<Semaphore>(device);
         _inFlightFences[i] = std::make_unique<Fence>(device, true);
     }
 
-    for (size_t i = 0; i < imageCount; i++) {
+    for (size_t i = 0; i < imageCount; ++i) {
         _renderFinishedSemaphores[i] = std::make_unique<Semaphore>(device);
     }
 }

@@ -1,12 +1,11 @@
-#include "vulkan_backend/surface/SwapChain.hpp"
-#include "vulkan_backend/core/Device.hpp"
-#include "vulkan_backend/core/Instance.hpp"
-#include "vulkan_backend/resources/ImageView.hpp"
-#include "vulkan_backend/surface/Surface.hpp"
-#include "vulkan_backend/utils/Result.hpp"
-#include "vulkan_backend/utils/VulkanUtils.hpp"
+#include <vulkan_backend/core/Device.hpp>
+#include <vulkan_backend/core/Instance.hpp>
+#include <vulkan_backend/resources/ImageView.hpp>
+#include <vulkan_backend/surface/Surface.hpp>
+#include <vulkan_backend/surface/SwapChain.hpp>
+#include <vulkan_backend/utils/Result.hpp>
+#include <vulkan_backend/utils/VulkanUtils.hpp>
 
-#include <GLFW/glfw3.h>
 #include <algorithm>
 #include <limits>
 
@@ -113,7 +112,7 @@ void lumen::SwapChain::_create_swap_chain(GLFWwindow *window)
 void lumen::SwapChain::_create_image_views()
 {
     _imageViews.resize(_images.size());
-    for (size_t i = 0; i < _images.size(); i++) {
+    for (size_t i = 0; i < _images.size(); ++i) {
         _imageViews[i] = std::make_unique<ImageView>(_device, _images[i], _imageFormat, VK_IMAGE_ASPECT_COLOR_BIT);
     }
 }

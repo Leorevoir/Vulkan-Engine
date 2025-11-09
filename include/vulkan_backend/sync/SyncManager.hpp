@@ -1,11 +1,11 @@
 #pragma once
 
-#include "Fence.hpp"
-#include "Semaphore.hpp"
+#include <vulkan_backend/Backend.hpp>
+#include <vulkan_backend/sync/Fence.hpp>
+#include <vulkan_backend/sync/Semaphore.hpp>
 
 #include <memory>
 #include <vector>
-#include <vulkan/vulkan.h>
 
 namespace lumen {
 
