@@ -3,26 +3,37 @@
 #include "vulkan_backend/utils/Result.hpp"
 
 /**
-* public
-*/
+ * static private
+ */
 
-lumen::CommandPool::CommandPool(Device &device, uint32_t queueFamilyIndex) : _device(device)
+namespace {
+
+static inline VkCommandPool create_command_pool_handle(lumen::Device &device, uint32_t queueFamilyIndex)
 {
     VkCommandPoolCreateInfo poolInfo{};
-
     poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
     poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
     poolInfo.queueFamilyIndex = queueFamilyIndex;
 
-    vk_check(vkCreateCommandPool(_device.logicalDevice(), &poolInfo, nullptr, &_commandPool), "failed to create command pool!");
+    VkCommandPool command_pool_handle;
+    vk_check(vkCreateCommandPool(device.logicalDevice(), &poolInfo, nullptr, &command_pool_handle), "failed to create command pool!");
+    return command_pool_handle;
+}
+}// namespace
+
+/**
+* public
+*/
+
+lumen::CommandPool::CommandPool(Device &device, uint32_t queueFamilyIndex)
+    : VulkanObject(device, create_command_pool_handle(device, queueFamilyIndex))
+{
+    /* __ctor__ */
 }
 
 lumen::CommandPool::~CommandPool()
 {
-    vkDestroyCommandPool(_device.logicalDevice(), _commandPool, nullptr);
-}
-
-VkCommandPool lumen::CommandPool::handle() const
-{
-    return _commandPool;
+    if (_handle != VK_NULL_HANDLE) {
+        vkDestroyCommandPool(_device.logicalDevice(), _handle, nullptr);
+    }
 }
