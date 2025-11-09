@@ -8,11 +8,13 @@
  */
 // clang-format off
 
-lumen::Pipeline::Pipeline(Device &device, const RenderPass &renderPass, const std::string &vertShaderPath, const std::string &fragShaderPath) : _device(device)
+lumen::Pipeline::Pipeline(Device &device, const RenderPass &renderPass, const std::string &vertShaderPath, const std::string &fragShaderPath)
+    : VulkanObject(device, VK_NULL_HANDLE),
+      _pipelineLayout(VK_NULL_HANDLE)
 {
     PipelineBuilder builder{device};
 
-    _graphicsPipeline = builder.set_shader_stages(vertShaderPath, fragShaderPath)
+    _handle = builder.set_shader_stages(vertShaderPath, fragShaderPath)
                             .set_vertex_input_state()
                             .set_input_assembly_state()
                             .set_viewport_state()
@@ -25,18 +27,18 @@ lumen::Pipeline::Pipeline(Device &device, const RenderPass &renderPass, const st
 
 lumen::Pipeline::~Pipeline() noexcept
 {
-    vkDestroyPipeline(_device.logicalDevice(), _graphicsPipeline, nullptr);
-    vkDestroyPipelineLayout(_device.logicalDevice(), _pipelineLayout, nullptr);
+    if (_pipelineLayout != VK_NULL_HANDLE) {
+        vkDestroyPipelineLayout(_device.logicalDevice(), _pipelineLayout, nullptr);
+    }
+
+    if (_handle != VK_NULL_HANDLE) {
+        vkDestroyPipeline(_device.logicalDevice(), _handle, nullptr);
+    }
 }
 
 /**
 * getters
 */
-
-VkPipeline lumen::Pipeline::handle() const noexcept
-{
-    return _graphicsPipeline;
-}
 
 VkPipelineLayout lumen::Pipeline::getLayout() const noexcept
 {
