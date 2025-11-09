@@ -25,7 +25,6 @@ struct SwapChainSupportDetails {
 
 namespace utils {
 
-std::vector<char> read_file(const std::string &filename);
 QueueFamilyIndices find_queue_family(VkPhysicalDevice device, VkSurfaceKHR surface);
 SwapChainSupportDetails query_swapchain_support(VkPhysicalDevice device, VkSurfaceKHR surface);
 bool check_device_extension_support(VkPhysicalDevice device);

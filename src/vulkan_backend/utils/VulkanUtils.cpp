@@ -1,9 +1,7 @@
 #include <vulkan_backend/utils/Config.hpp>
 #include <vulkan_backend/utils/VulkanUtils.hpp>
 
-#include <fstream>
 #include <set>
-#include <stdexcept>
 #include <string>
 
 /**
@@ -18,24 +16,6 @@ bool lumen::QueueFamilyIndices::isComplete() const
 /**
 * utils
 */
-
-std::vector<char> lumen::utils::read_file(const std::string &filename)
-{
-    std::ifstream file(filename, std::ios::ate | std::ios::binary);
-
-    if (!file.is_open()) {
-        throw std::runtime_error("failed to open file: " + filename);
-    }
-
-    const size_t fileSize = static_cast<size_t>(file.tellg());
-    std::vector<char> buffer(fileSize);
-
-    file.seekg(0);
-    file.read(buffer.data(), static_cast<std::streamsize>(fileSize));
-    file.close();
-
-    return buffer;
-}
 
 lumen::QueueFamilyIndices lumen::utils::find_queue_family(VkPhysicalDevice device, VkSurfaceKHR surface)
 {

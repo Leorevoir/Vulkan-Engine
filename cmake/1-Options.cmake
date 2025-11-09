@@ -17,7 +17,12 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 #######################################
 
+add_compile_definitions(LUMEN_ROOT_DIR="${CMAKE_SOURCE_DIR}")
+
+#######################################
+
 message(STATUS "INFO: CXX standard set to ${CMAKE_CXX_STANDARD}")
+message(STATUS "INFO: Lumen root directory: ${CMAKE_SOURCE_DIR}")
 
 #######################################
 

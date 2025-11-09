@@ -7,24 +7,30 @@ namespace lumen {
 class RenderWindow;
 class Renderer;
 class GraphicsContext;
-class Pipeline;
 
 class Application
 {
     public:
         Application();
-        ~Application();
+        virtual ~Application();
 
         void run();
 
+    protected:
+        virtual void on_create() = 0;
+        virtual void on_update() = 0;
+        virtual void on_destroy() = 0;
+
+        RenderWindow &get_window() const noexcept;
+        GraphicsContext &get_context() const noexcept;
+        Renderer &get_renderer() const noexcept;
+
     private:
-        void _create_render_assets();
         void _main_loop();
 
         std::unique_ptr<RenderWindow> _window;
         std::unique_ptr<GraphicsContext> _context;
         std::unique_ptr<Renderer> _renderer;
-        std::unique_ptr<Pipeline> _pipeline;
 };
 
 }// namespace lumen

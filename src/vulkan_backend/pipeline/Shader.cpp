@@ -1,7 +1,9 @@
-#include "vulkan_backend/pipeline/Shader.hpp"
-#include "vulkan_backend/core/Device.hpp"
-#include "vulkan_backend/utils/Result.hpp"
-#include "vulkan_backend/utils/VulkanUtils.hpp"
+#include <utils/Filepath.hpp>
+
+#include <vulkan_backend/core/Device.hpp>
+#include <vulkan_backend/pipeline/Shader.hpp>
+#include <vulkan_backend/utils/Result.hpp>
+#include <vulkan_backend/utils/VulkanUtils.hpp>
 
 /**
  * static private
@@ -11,7 +13,8 @@ namespace {
 
 static inline VkShaderModule __create_shader_module_handle(lumen::Device &device, const std::string &filepath)
 {
-    const auto shader_code = lumen::utils::read_file(filepath);
+    const auto shader_code = Filepath::read(filepath);
+
     VkShaderModuleCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
     createInfo.codeSize = shader_code.size();
