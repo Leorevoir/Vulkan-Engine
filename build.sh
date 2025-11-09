@@ -6,8 +6,6 @@ ILC="\033[3m"
 ORG="\033[1;33m"
 RST="\033[0m"
 
-PROGRAM_NAME="liblumen"
-
 function _error()
 {
     echo -e "${RED}${BOLD}[❌] ERROR:\n${RST}\t$1\n\t${ILC}\"$2\"${RST}"
@@ -27,14 +25,13 @@ function _info()
 function _base_run()
 {
     local cmake_args="$1"
-    local build_type="$2"
 
     git submodule update --init --recursive
     mkdir -p build
     cd build || _error "mkdir failed"
 
     cmake .. -G Ninja $cmake_args
-    if ! ninja $build_type; then
+    if ! ninja -j$(nproc); then
         _error "compilation error" "failed to compile $build_type"
     fi
     _success "compiled $build_type"
@@ -42,13 +39,13 @@ function _base_run()
 
 function _all()
 {
-    _base_run "-DCMAKE_BUILD_TYPE=Release -DENABLE_DEBUG=OFF" "$PROGRAM_NAME"
+    _base_run "-DCMAKE_BUILD_TYPE=Release -DENABLE_DEBUG=OFF"
     exit 0
 }
 
 function _debug()
 {
-    _base_run "-DCMAKE_BUILD_TYPE=Debug -DENABLE_DEBUG=ON" "$PROGRAM_NAME"
+    _base_run "-DCMAKE_BUILD_TYPE=Debug -DENABLE_DEBUG=ON"
     exit 0
 }
 
@@ -60,7 +57,7 @@ function _clean()
 function _fclean()
 {
     _clean
-    rm -rf $PROGRAM_NAME vgcore*
+    rm -rf vgcore*
 }
 
 for args in "$@"
@@ -69,7 +66,7 @@ do
         -h|--help)
             cat << EOF
 USAGE:
-      $0    builds $PROGRAM_NAME project
+      $0    builds lumen project
 
 ARGUMENTS:
       $0 [-h|--help]    displays this message
