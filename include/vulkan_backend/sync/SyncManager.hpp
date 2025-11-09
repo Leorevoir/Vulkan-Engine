@@ -2,6 +2,7 @@
 
 #include "Fence.hpp"
 #include "Semaphore.hpp"
+
 #include <memory>
 #include <vector>
 #include <vulkan/vulkan.h>
@@ -13,12 +14,12 @@ class Device;
 class SyncManager
 {
     public:
-        SyncManager(Device &device, size_t maxFramesInFlight);
+        SyncManager(Device &device, size_t maxFramesInFlight, uint32_t imageCount);
         ~SyncManager() = default;
 
         const Fence &getInFlightFence(size_t frameIndex) const noexcept;
         const Semaphore &getImageAvailableSemaphore(size_t frameIndex) const noexcept;
-        const Semaphore &getRenderFinishedSemaphore(size_t frameIndex) const noexcept;
+        const Semaphore &getRenderFinishedSemaphore(size_t imageIndex) const noexcept;
 
     private:
         std::vector<std::unique_ptr<Semaphore>> _imageAvailableSemaphores;
