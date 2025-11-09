@@ -56,7 +56,7 @@ void lumen::Application::_init_vulkan()
         _commandBuffers[i] = std::make_unique<CommandBuffer>(*_device, *_commandPool);
     }
 
-    _syncManager = std::make_unique<SyncManager>(*_device, config::MAX_FRAMES_IN_FLIGHT);
+    _syncManager = std::make_unique<SyncManager>(*_device, config::MAX_FRAMES_IN_FLIGHT, _swapChain->getImageCount());
 }
 
 void lumen::Application::_create_framebuffers()
@@ -167,7 +167,8 @@ void lumen::Application::_draw_frame()
     submitInfo.commandBufferCount = 1;
     VkCommandBuffer rawCmdBuffer = cmdBuffer->handle();
     submitInfo.pCommandBuffers = &rawCmdBuffer;
-    VkSemaphore signalSemaphores[] = {_syncManager->getRenderFinishedSemaphore(_currentFrame).handle()};
+
+    VkSemaphore signalSemaphores[] = {_syncManager->getRenderFinishedSemaphore(imageIndex).handle()};
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores = signalSemaphores;
 
@@ -178,6 +179,7 @@ void lumen::Application::_draw_frame()
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
     presentInfo.waitSemaphoreCount = 1;
     presentInfo.pWaitSemaphores = signalSemaphores;
+
     VkSwapchainKHR swapChains[] = {_swapChain->handle()};
     presentInfo.swapchainCount = 1;
     presentInfo.pSwapchains = swapChains;
