@@ -1,24 +1,17 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
+#include "vulkan_backend/core/VulkanObject.hpp"
 
 namespace lumen {
 
-class Device;
 class ImageView;
 class RenderPass;
 
-class Framebuffer
+class Framebuffer : public VulkanObject<VkFramebuffer>
 {
     public:
         Framebuffer(Device &device, const RenderPass &renderPass, const ImageView &imageView, VkExtent2D extent);
-        ~Framebuffer();
-
-        VkFramebuffer handle() const noexcept;
-
-    private:
-        VkFramebuffer _framebuffer;
-        Device &_device;
+        ~Framebuffer() override;
 };
 
 }// namespace lumen

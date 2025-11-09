@@ -1,25 +1,17 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
+#include "vulkan_backend/core/VulkanObject.hpp"
 
 namespace lumen {
 
-class Device;
-
-class Fence
+class Fence : public VulkanObject<VkFence>
 {
     public:
         Fence(Device &device, bool signaled = false);
-        ~Fence();
+        ~Fence() override;
 
         void wait() const noexcept;
         void reset() const noexcept;
-
-        VkFence handle() const noexcept;
-
-    private:
-        VkFence _fence;
-        Device &_device;
 };
 
 }// namespace lumen

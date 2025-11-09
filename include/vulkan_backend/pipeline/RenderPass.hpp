@@ -1,23 +1,16 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
+#include "vulkan_backend/core/VulkanObject.hpp"
 
 namespace lumen {
 
-class Device;
 class SwapChain;
 
-class RenderPass
+class RenderPass : public VulkanObject<VkRenderPass>
 {
     public:
         RenderPass(Device &device, const SwapChain &swapChain);
-        ~RenderPass() noexcept;
-
-        VkRenderPass handle() const noexcept;
-
-    private:
-        VkRenderPass _renderPass;
-        Device &_device;
+        ~RenderPass() noexcept override;
 };
 
 }// namespace lumen

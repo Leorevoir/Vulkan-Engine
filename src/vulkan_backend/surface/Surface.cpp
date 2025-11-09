@@ -1,8 +1,6 @@
-#include "vulkan_backend/surface/Surface.hpp"
-#include "vulkan_backend/core/Instance.hpp"
-#include "vulkan_backend/utils/Result.hpp"
-
-#include <GLFW/glfw3.h>
+#include <vulkan_backend/core/Instance.hpp>
+#include <vulkan_backend/surface/Surface.hpp>
+#include <vulkan_backend/utils/Result.hpp>
 
 /**
 * public

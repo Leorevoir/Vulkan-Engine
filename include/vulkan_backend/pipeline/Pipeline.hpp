@@ -1,27 +1,22 @@
 #pragma once
 
+#include "vulkan_backend/core/VulkanObject.hpp"
 #include <string>
-#include <vector>
-#include <vulkan/vulkan.h>
 
 namespace lumen {
 
-class Device;
 class RenderPass;
 
-class Pipeline
+class Pipeline : public VulkanObject<VkPipeline>
 {
     public:
         Pipeline(Device &device, const RenderPass &renderPass, const std::string &vertShaderPath, const std::string &fragShaderPath);
-        ~Pipeline() noexcept;
+        ~Pipeline() noexcept override;
 
-        VkPipeline handle() const noexcept;
         VkPipelineLayout getLayout() const noexcept;
 
     private:
-        VkPipeline _graphicsPipeline;
         VkPipelineLayout _pipelineLayout;
-        Device &_device;
 };
 
 }// namespace lumen

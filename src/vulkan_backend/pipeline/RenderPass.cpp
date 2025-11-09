@@ -77,7 +77,8 @@ static inline VkRenderPassCreateInfo __create_render_pass_info(
 * public
 */
 
-lumen::RenderPass::RenderPass(Device &device, const SwapChain &swapChain) : _device(device)
+lumen::RenderPass::RenderPass(Device &device, const SwapChain &swapChain)
+    : VulkanObject(device, VK_NULL_HANDLE)
 {
     VkAttachmentDescription colorAttachment = __create_color_attachment(swapChain.getImageFormat());
     VkAttachmentReference colorAttachmentRef = __create_color_attachment_ref();
@@ -85,19 +86,12 @@ lumen::RenderPass::RenderPass(Device &device, const SwapChain &swapChain) : _dev
     VkSubpassDependency dependency = __create_dependency();
     VkRenderPassCreateInfo renderPassInfo = __create_render_pass_info(&colorAttachment, &subpass, &dependency);
 
-    vk_check(vkCreateRenderPass(_device.logicalDevice(), &renderPassInfo, nullptr, &_renderPass), "failed to create render pass!");
+    vk_check(vkCreateRenderPass(_device.logicalDevice(), &renderPassInfo, nullptr, &_handle), "failed to create render pass!");
 }
 
 lumen::RenderPass::~RenderPass() noexcept
 {
-    vkDestroyRenderPass(_device.logicalDevice(), _renderPass, nullptr);
-}
-
-/**
-* getters
-*/
-
-VkRenderPass lumen::RenderPass::handle() const noexcept
-{
-    return _renderPass;
+    if (_handle != VK_NULL_HANDLE) {
+        vkDestroyRenderPass(_device.logicalDevice(), _handle, nullptr);
+    }
 }

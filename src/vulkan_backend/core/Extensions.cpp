@@ -1,7 +1,5 @@
-#include "vulkan_backend/core/Extensions.hpp"
-
-#include <GLFW/glfw3.h>
-#include <vulkan/vulkan.h>
+#include <vulkan_backend/Backend.hpp>
+#include <vulkan_backend/core/Extensions.hpp>
 
 /**
 * public

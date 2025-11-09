@@ -1,22 +1,14 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
+#include "vulkan_backend/core/VulkanObject.hpp"
 
 namespace lumen {
 
-class Device;
-
-class Semaphore
+class Semaphore : public VulkanObject<VkSemaphore>
 {
     public:
-        Semaphore(Device &device);
-        ~Semaphore() noexcept;
-
-        VkSemaphore handle() const noexcept;
-
-    private:
-        VkSemaphore _semaphore;
-        Device &_device;
+        explicit Semaphore(Device &device);
+        ~Semaphore() noexcept override;
 };
 
 }// namespace lumen

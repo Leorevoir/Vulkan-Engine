@@ -1,22 +1,14 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
+#include "vulkan_backend/core/VulkanObject.hpp"
 
 namespace lumen {
 
-class Device;
-
-class CommandPool
+class CommandPool : public VulkanObject<VkCommandPool>
 {
     public:
         CommandPool(Device &device, uint32_t queueFamilyIndex);
-        ~CommandPool();
-
-        VkCommandPool handle() const;
-
-    private:
-        VkCommandPool _commandPool;
-        Device &_device;
+        ~CommandPool() override;
 };
 
 }// namespace lumen

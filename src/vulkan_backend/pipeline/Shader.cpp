@@ -4,31 +4,37 @@
 #include "vulkan_backend/utils/VulkanUtils.hpp"
 
 /**
- * public
+ * static private
  */
 
-lumen::Shader::Shader(Device &device, const std::string &filepath) : _device(device)
-{
-    const auto shader_code = utils::read_file(filepath);
-    VkShaderModuleCreateInfo createInfo{};
+namespace {
 
+static inline VkShaderModule __create_shader_module_handle(lumen::Device &device, const std::string &filepath)
+{
+    const auto shader_code = lumen::utils::read_file(filepath);
+    VkShaderModuleCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
     createInfo.codeSize = shader_code.size();
     createInfo.pCode = reinterpret_cast<const uint32_t *>(shader_code.data());
 
-    vk_check(vkCreateShaderModule(_device.logicalDevice(), &createInfo, nullptr, &_shaderModule), "failed to create shader module!");
+    VkShaderModule shader_module_handle;
+    vk_check(vkCreateShaderModule(device.logicalDevice(), &createInfo, nullptr, &shader_module_handle), "failed to create shader module!");
+    return shader_module_handle;
+}
+}// namespace
+
+/**
+ * public
+ */
+
+lumen::Shader::Shader(Device &device, const std::string &filepath) : VulkanObject(device, __create_shader_module_handle(device, filepath))
+{
+    /* __ctor__ */
 }
 
 lumen::Shader::~Shader() noexcept
 {
-    vkDestroyShaderModule(_device.logicalDevice(), _shaderModule, nullptr);
-}
-
-/**
-* getters
-*/
-
-VkShaderModule lumen::Shader::handle() const noexcept
-{
-    return _shaderModule;
+    if (_handle != VK_NULL_HANDLE) {
+        vkDestroyShaderModule(_device.logicalDevice(), _handle, nullptr);
+    }
 }

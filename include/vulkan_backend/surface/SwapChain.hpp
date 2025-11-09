@@ -1,9 +1,10 @@
 #pragma once
 
-#include "../utils/VulkanUtils.hpp"
+#include <vulkan_backend/Backend.hpp>
+#include <vulkan_backend/utils/VulkanUtils.hpp>
+
 #include <memory>
 #include <vector>
-#include <vulkan/vulkan.h>
 
 struct GLFWwindow;
 

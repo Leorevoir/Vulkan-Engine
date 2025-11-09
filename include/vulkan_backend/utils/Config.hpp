@@ -1,8 +1,9 @@
 #pragma once
 
+#include <vulkan_backend/Backend.hpp>
+
 #include <cstdint>
 #include <vector>
-#include <vulkan/vulkan_core.h>
 
 namespace lumen::config {
 
