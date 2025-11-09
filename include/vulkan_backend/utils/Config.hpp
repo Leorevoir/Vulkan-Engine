@@ -13,10 +13,10 @@ static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 static const std::vector<const char *> VALIDATION_LAYERS = {"VK_LAYER_KHRONOS_validation"};
 static const std::vector<const char *> DEVICE_EXTENSIONS = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
-#ifdef LUMEN_DEBUG
-static constexpr bool ENABLE_VALIDATION_LAYERS = false;
-#else
+#if defined(LUMEN_DEBUG)
 static constexpr bool ENABLE_VALIDATION_LAYERS = true;
+#else
+static constexpr bool ENABLE_VALIDATION_LAYERS = false;
 #endif
 
 }// namespace lumen::config
