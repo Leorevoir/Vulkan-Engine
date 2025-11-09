@@ -8,7 +8,7 @@
 
 namespace {
 
-static inline VkCommandPool create_command_pool_handle(lumen::Device &device, uint32_t queueFamilyIndex)
+static inline VkCommandPool __create_command_pool_handle(lumen::Device &device, const uint32_t queueFamilyIndex)
 {
     VkCommandPoolCreateInfo poolInfo{};
     poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -26,7 +26,7 @@ static inline VkCommandPool create_command_pool_handle(lumen::Device &device, ui
 */
 
 lumen::CommandPool::CommandPool(Device &device, uint32_t queueFamilyIndex)
-    : VulkanObject(device, create_command_pool_handle(device, queueFamilyIndex))
+    : VulkanObject(device, __create_command_pool_handle(device, queueFamilyIndex))
 {
     /* __ctor__ */
 }
