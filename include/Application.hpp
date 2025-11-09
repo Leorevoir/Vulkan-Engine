@@ -36,6 +36,10 @@ class Application
         void _draw_frame();
         void _cleanup();
         void _create_framebuffers();
+        void _cleanup_swap_chain();
+        void _recreate_swap_chain();
+
+        static void _framebuffer_resize_callback(GLFWwindow *window, int width, int height);
 
         GLFWwindow *_window = nullptr;
 
@@ -51,6 +55,7 @@ class Application
         std::unique_ptr<SyncManager> _syncManager;
 
         uint32_t _currentFrame = 0;
+        bool _framebufferResized = false;
 };
 
 }// namespace lumen

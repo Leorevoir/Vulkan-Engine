@@ -25,15 +25,18 @@ void lumen::Application::run()
 
 /**
 * private
-* TODO: refaco
 */
 
 void lumen::Application::_init_window()
 {
     glfwInit();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+
     _window = glfwCreateWindow(config::WINDOW_WIDTH, config::WINDOW_HEIGHT, "Lumen Engine", nullptr, nullptr);
+
+    glfwSetWindowUserPointer(_window, this);
+    glfwSetFramebufferSizeCallback(_window, _framebuffer_resize_callback);
 }
 
 void lumen::Application::_init_vulkan()
@@ -43,9 +46,7 @@ void lumen::Application::_init_vulkan()
     _device = std::make_unique<Device>(*_instance, *_surface);
     _swapChain = std::make_unique<SwapChain>(*_instance, *_device, *_surface, _window);
     _renderPass = std::make_unique<RenderPass>(*_device, *_swapChain);
-
     _pipeline = std::make_unique<Pipeline>(*_device, *_renderPass, "assets/shaders/triangle.vert.spv", "assets/shaders/triangle.frag.spv");
-
     _commandPool = std::make_unique<CommandPool>(*_device, _device->getQueueFamilyIndices().graphicsFamily.value());
 
     _create_framebuffers();
@@ -75,15 +76,54 @@ void lumen::Application::_main_loop()
     vkDeviceWaitIdle(_device->logicalDevice());
 }
 
+void lumen::Application::_cleanup_swap_chain()
+{
+    _framebuffers.clear();
+    _swapChain.reset();
+}
+
+void lumen::Application::_recreate_swap_chain()
+{
+    int width = 0, height = 0;
+
+    glfwGetFramebufferSize(_window, &width, &height);
+    while (width == 0 || height == 0) {
+        glfwGetFramebufferSize(_window, &width, &height);
+        glfwWaitEvents();
+    }
+
+    vkDeviceWaitIdle(_device->logicalDevice());
+
+    _cleanup_swap_chain();
+
+    _swapChain = std::make_unique<SwapChain>(*_instance, *_device, *_surface, _window);
+    _create_framebuffers();
+}
+
+void lumen::Application::_framebuffer_resize_callback(GLFWwindow *window, [[maybe_unused]] int width, [[maybe_unused]] int height)
+{
+    auto app = reinterpret_cast<Application *>(glfwGetWindowUserPointer(window));
+
+    app->_framebufferResized = true;
+}
+
 void lumen::Application::_draw_frame()
 {
     auto &inFlightFence = _syncManager->getInFlightFence(_currentFrame);
     inFlightFence.wait();
-    inFlightFence.reset();
 
     uint32_t imageIndex;
-    vkAcquireNextImageKHR(_device->logicalDevice(), _swapChain->handle(), UINT64_MAX,
+    VkResult result = vkAcquireNextImageKHR(_device->logicalDevice(), _swapChain->handle(), UINT64_MAX,
         _syncManager->getImageAvailableSemaphore(_currentFrame).handle(), VK_NULL_HANDLE, &imageIndex);
+
+    if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+        _recreate_swap_chain();
+        return;
+    } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+        throw std::runtime_error("failed to acquire swap chain image!");
+    }
+
+    inFlightFence.reset();
 
     auto &cmdBuffer = _commandBuffers[_currentFrame];
     cmdBuffer->reset();
@@ -143,20 +183,27 @@ void lumen::Application::_draw_frame()
     presentInfo.pSwapchains = swapChains;
     presentInfo.pImageIndices = &imageIndex;
 
-    vkQueuePresentKHR(_device->getPresentQueue().handle(), &presentInfo);
+    result = vkQueuePresentKHR(_device->getPresentQueue().handle(), &presentInfo);
+
+    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || _framebufferResized) {
+        _framebufferResized = false;
+        _recreate_swap_chain();
+    } else if (result != VK_SUCCESS) {
+        throw std::runtime_error("failed to present swap chain image!");
+    }
 
     _currentFrame = (_currentFrame + 1) % config::MAX_FRAMES_IN_FLIGHT;
 }
 
 void lumen::Application::_cleanup()
 {
+    _cleanup_swap_chain();
+
     _syncManager.reset();
     _commandBuffers.clear();
-    _framebuffers.clear();
     _commandPool.reset();
     _pipeline.reset();
     _renderPass.reset();
-    _swapChain.reset();
     _device.reset();
     _surface.reset();
     _instance.reset();
