@@ -91,9 +91,10 @@ static inline VkPipelineColorBlendStateCreateInfo __create_color_blending(
     return colorBlending;
 }
 
-static inline VkPipelineDynamicStateCreateInfo __create_dynamic_state() noexcept
+static inline VkPipelineDynamicStateCreateInfo __create_dynamic_state(
+    const std::vector<VkDynamicState> &dynamicStates
+) noexcept
 {
-    std::vector<VkDynamicState> dynamicStates = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
     VkPipelineDynamicStateCreateInfo dynamicState{};
 
     dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
@@ -142,9 +143,11 @@ lumen::Pipeline::Pipeline(Device &device, const RenderPass &renderPass, const st
         | VK_COLOR_COMPONENT_A_BIT;
     colorBlendAttachment.blendEnable = VK_FALSE;
 
-   VkPipelineColorBlendStateCreateInfo colorBlending = __create_color_blending(colorBlendAttachment);
-    VkPipelineDynamicStateCreateInfo dynamicState = __create_dynamic_state();
-    _pipelineLayout = __create_pipeline_layout(device.logicalDevice());    VkGraphicsPipelineCreateInfo pipelineInfo{};
+    VkPipelineColorBlendStateCreateInfo colorBlending = __create_color_blending(colorBlendAttachment);
+    std::vector<VkDynamicState> dynamicStates = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
+    VkPipelineDynamicStateCreateInfo dynamicState = __create_dynamic_state(dynamicStates);
+    _pipelineLayout = __create_pipeline_layout(device.logicalDevice());
+    VkGraphicsPipelineCreateInfo pipelineInfo{};
 
     pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
     pipelineInfo.stageCount = 2;
@@ -163,7 +166,7 @@ lumen::Pipeline::Pipeline(Device &device, const RenderPass &renderPass, const st
     vk_check(vkCreateGraphicsPipelines(device.logicalDevice(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &_graphicsPipeline), "failed to create graphics pipeline!");
 }
 
-lumen::Pipeline::~Pipeline()
+lumen::Pipeline::~Pipeline() noexcept
 {
     vkDestroyPipeline(_device.logicalDevice(), _graphicsPipeline, nullptr);
     vkDestroyPipelineLayout(_device.logicalDevice(), _pipelineLayout, nullptr);

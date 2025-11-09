@@ -13,7 +13,7 @@ class Pipeline
 {
     public:
         Pipeline(Device &device, const RenderPass &renderPass, const std::string &vertShaderPath, const std::string &fragShaderPath);
-        ~Pipeline();
+        ~Pipeline() noexcept;
 
         VkPipeline handle() const noexcept;
         VkPipelineLayout getLayout() const noexcept;
