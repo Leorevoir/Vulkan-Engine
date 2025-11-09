@@ -5,11 +5,13 @@
 #include "vulkan_backend/utils/Result.hpp"
 
 /**
- * public
+ * static private
  */
 
-lumen::Framebuffer::Framebuffer(Device &device, const RenderPass &renderPass, const ImageView &imageView, VkExtent2D extent)
-    : _device(device)
+namespace {
+
+static inline VkFramebuffer __create_framebuffer_handle(lumen::Device &device, const lumen::RenderPass &renderPass,
+    const lumen::ImageView &imageView, VkExtent2D extent)
 {
     VkImageView attachments[] = {imageView.handle()};
 
@@ -22,19 +24,25 @@ lumen::Framebuffer::Framebuffer(Device &device, const RenderPass &renderPass, co
     framebufferInfo.height = extent.height;
     framebufferInfo.layers = 1;
 
-    vk_check(vkCreateFramebuffer(_device.logicalDevice(), &framebufferInfo, nullptr, &_framebuffer), "failed to create framebuffer!");
+    VkFramebuffer framebuffer_handle;
+    vk_check(vkCreateFramebuffer(device.logicalDevice(), &framebufferInfo, nullptr, &framebuffer_handle), "failed to create framebuffer!");
+    return framebuffer_handle;
+}
+}// namespace
+
+/**
+ * public
+ */
+
+lumen::Framebuffer::Framebuffer(Device &device, const RenderPass &renderPass, const ImageView &imageView, VkExtent2D extent)
+    : VulkanObject(device, __create_framebuffer_handle(device, renderPass, imageView, extent))
+{
+    /* __ctor__ */
 }
 
 lumen::Framebuffer::~Framebuffer()
 {
-    vkDestroyFramebuffer(_device.logicalDevice(), _framebuffer, nullptr);
-}
-
-/**
-* getters
-*/
-
-VkFramebuffer lumen::Framebuffer::handle() const noexcept
-{
-    return _framebuffer;
+    if (_handle != VK_NULL_HANDLE) {
+        vkDestroyFramebuffer(_device.logicalDevice(), _handle, nullptr);
+    }
 }

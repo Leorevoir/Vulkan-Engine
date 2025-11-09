@@ -35,6 +35,7 @@ static inline VkImageView __create_image_view_handle(lumen::Device &device, VkIm
 lumen::ImageView::ImageView(Device &device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags)
     : VulkanObject(device, __create_image_view_handle(device, image, format, aspectFlags))
 {
+    /* __ctor__ */
 }
 
 lumen::ImageView::~ImageView() noexcept
