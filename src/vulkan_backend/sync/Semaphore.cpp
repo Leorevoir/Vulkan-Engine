@@ -2,28 +2,34 @@
 #include "vulkan_backend/core/Device.hpp"
 #include "vulkan_backend/utils/Result.hpp"
 
-/**
-* public
-*/
+namespace {
 
-lumen::Semaphore::Semaphore(Device &device) : _device(device)
+VkSemaphore __create_semaphore_handle(lumen::Device &device)
 {
     VkSemaphoreCreateInfo semaphoreInfo{};
     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
-    vk_check(vkCreateSemaphore(_device.logicalDevice(), &semaphoreInfo, nullptr, &_semaphore), "failed to create semaphore!");
+    VkSemaphore semaphore_handle;
+
+    vk_check(vkCreateSemaphore(device.logicalDevice(), &semaphoreInfo, nullptr, &semaphore_handle), "failed to create semaphore!");
+
+    return semaphore_handle;
+}
+
+}// namespace
+
+/**
+* public
+*/
+
+lumen::Semaphore::Semaphore(Device &device) : VulkanObject(device, __create_semaphore_handle(device))
+{
+    /* __ctor__ */
 }
 
 lumen::Semaphore::~Semaphore() noexcept
 {
-    vkDestroySemaphore(_device.logicalDevice(), _semaphore, nullptr);
-}
-
-/**
-* getters
-*/
-
-VkSemaphore lumen::Semaphore::handle() const noexcept
-{
-    return _semaphore;
+    if (_handle != VK_NULL_HANDLE) {
+        vkDestroySemaphore(_device.logicalDevice(), _handle, nullptr);
+    }
 }
