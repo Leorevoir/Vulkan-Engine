@@ -4,7 +4,7 @@
 
 namespace {
 
-VkSemaphore __create_semaphore_handle(lumen::Device &device)
+static inline VkSemaphore __create_semaphore_handle(lumen::Device &device)
 {
     VkSemaphoreCreateInfo semaphoreInfo{};
     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
