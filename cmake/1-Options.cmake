@@ -20,3 +20,8 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 message(STATUS "INFO: CXX standard set to ${CMAKE_CXX_STANDARD}")
 
 #######################################
+
+if(ENABLE_DEBUG)
+    add_compile_definitions(LUMEN_DEBUG)
+    message(STATUS "INFO: LUMEN_DEBUG flag enabled")
+endif()
