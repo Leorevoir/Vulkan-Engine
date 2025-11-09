@@ -11,9 +11,10 @@
  */
 // clang-format off
 
-lumen::Renderer::Renderer(RenderWindow &window) : _window(window)
+lumen::Renderer::Renderer(GraphicsContext &context, RenderWindow &window)
+    : _context(context), _window(window)
 {
-    _init_vulkan();
+    _init_renderer();
     _window.set_framebuffer_resize_callback(
     [this](int __attribute__((unused)) _w, int __attribute__((unused)) _h)
     {
@@ -23,11 +24,11 @@ lumen::Renderer::Renderer(RenderWindow &window) : _window(window)
 
 lumen::Renderer::~Renderer()
 {
-    vkDeviceWaitIdle(_device->logicalDevice());
+    vkDeviceWaitIdle(_context.get_device().logicalDevice());
     _cleanup_swap_chain();
 }
 
-void lumen::Renderer::draw_frame()
+void lumen::Renderer::draw_frame(const Pipeline &pipeline)
 {
     const std::optional<FrameData> frame_data = _begin_frame();
 
@@ -35,8 +36,13 @@ void lumen::Renderer::draw_frame()
         return;
     }
 
-    _record_draw_commands(frame_data.value());
+    _record_draw_commands(frame_data.value(), pipeline);
     _end_frame(frame_data.value());
+}
+
+const lumen::RenderPass &lumen::Renderer::get_render_pass() const
+{
+    return *_renderPass;
 }
 
 /**
@@ -49,7 +55,7 @@ std::optional<lumen::Renderer::FrameData> lumen::Renderer::_begin_frame()
     inFlightFence.wait();
 
     uint32_t imageIndex;
-    VkResult result = vkAcquireNextImageKHR(_device->logicalDevice(), _swapChain->handle(), UINT64_MAX,
+    const VkResult result = vkAcquireNextImageKHR(_context.get_device().logicalDevice(), _swapChain->handle(), UINT64_MAX,
         _syncManager->getImageAvailableSemaphore(_currentFrame).handle(), VK_NULL_HANDLE, &imageIndex);
 
     if (result == VK_ERROR_OUT_OF_DATE_KHR) {
@@ -68,7 +74,7 @@ std::optional<lumen::Renderer::FrameData> lumen::Renderer::_begin_frame()
     return FrameData{cmdBuffer->handle(), imageIndex};
 }
 
-void lumen::Renderer::_record_draw_commands(const FrameData &frame)
+void lumen::Renderer::_record_draw_commands(const FrameData &frame, const Pipeline &pipeline)
 {
     VkRenderPassBeginInfo renderPassInfo{};
     renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -81,7 +87,7 @@ void lumen::Renderer::_record_draw_commands(const FrameData &frame)
     renderPassInfo.pClearValues = &clearColor;
 
     vkCmdBeginRenderPass(frame.command_buffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-    vkCmdBindPipeline(frame.command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, _pipeline->handle());
+    vkCmdBindPipeline(frame.command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.handle());
 
     VkViewport viewport{};
     viewport.width = static_cast<float>(_swapChain->getExtent().width);
@@ -117,7 +123,8 @@ void lumen::Renderer::_end_frame(const FrameData &frame)
     submitInfo.pSignalSemaphores = signalSemaphores;
 
     auto &inFlightFence = _syncManager->getInFlightFence(_currentFrame);
-    vk_check(vkQueueSubmit(_device->getGraphicsQueue().handle(), 1, &submitInfo, inFlightFence.handle()),
+    auto& device = _context.get_device();
+    vk_check(vkQueueSubmit(device.getGraphicsQueue().handle(), 1, &submitInfo, inFlightFence.handle()),
         "failed to submit draw command buffer!");
 
     VkPresentInfoKHR presentInfo{};
@@ -129,7 +136,7 @@ void lumen::Renderer::_end_frame(const FrameData &frame)
     presentInfo.pSwapchains = swapChains;
     presentInfo.pImageIndices = &frame.image_index;
 
-    VkResult result = vkQueuePresentKHR(_device->getPresentQueue().handle(), &presentInfo);
+    VkResult result = vkQueuePresentKHR(device.getPresentQueue().handle(), &presentInfo);
 
     if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || _framebufferResized) {
         _framebufferResized = false;
@@ -141,31 +148,33 @@ void lumen::Renderer::_end_frame(const FrameData &frame)
     _currentFrame = (_currentFrame + 1) % config::MAX_FRAMES_IN_FLIGHT;
 }
 
-void lumen::Renderer::_init_vulkan()
+void lumen::Renderer::_init_renderer()
 {
-    _instance = std::make_unique<Instance>("Lumen App");
-    _surface = std::make_unique<Surface>(*_instance, _window.get_native_handle());
-    _device = std::make_unique<Device>(*_instance, *_surface);
-    _swapChain = std::make_unique<SwapChain>(*_instance, *_device, *_surface, _window.get_native_handle());
-    _renderPass = std::make_unique<RenderPass>(*_device, *_swapChain);
-    _pipeline = std::make_unique<Pipeline>(*_device, *_renderPass, "assets/shaders/triangle.vert.spv", "assets/shaders/triangle.frag.spv");
-    _commandPool = std::make_unique<CommandPool>(*_device, _device->getQueueFamilyIndices().graphicsFamily.value());
+    auto &device = _context.get_device();
+    auto &instance = _context.get_instance();
+    auto &surface = _context.get_surface();
+    auto &commandPool = _context.get_command_pool();
+
+    _swapChain = std::make_unique<SwapChain>(instance, device, surface, _window.get_native_handle());
+    _renderPass = std::make_unique<RenderPass>(device, *_swapChain);
 
     _create_framebuffers();
 
     _commandBuffers.resize(config::MAX_FRAMES_IN_FLIGHT);
     for (size_t i = 0; i < config::MAX_FRAMES_IN_FLIGHT; ++i) {
-        _commandBuffers[i] = std::make_unique<CommandBuffer>(*_device, *_commandPool);
+        _commandBuffers[i] = std::make_unique<CommandBuffer>(device, commandPool);
     }
 
-    _syncManager = std::make_unique<SyncManager>(*_device, config::MAX_FRAMES_IN_FLIGHT, _swapChain->getImageCount());
+    _syncManager = std::make_unique<SyncManager>(device, config::MAX_FRAMES_IN_FLIGHT, _swapChain->getImageCount());
 }
 
 void lumen::Renderer::_create_framebuffers()
 {
+    auto &device = _context.get_device();
+
     _framebuffers.resize(_swapChain->getImageCount());
     for (size_t i = 0; i < _swapChain->getImageCount(); ++i) {
-        _framebuffers[i] = std::make_unique<Framebuffer>(*_device, *_renderPass, *_swapChain->getImageViews()[i], _swapChain->getExtent());
+        _framebuffers[i] = std::make_unique<Framebuffer>(device, *_renderPass, *_swapChain->getImageViews()[i], _swapChain->getExtent());
     }
 }
 
@@ -173,6 +182,7 @@ void lumen::Renderer::_cleanup_swap_chain()
 {
     _framebuffers.clear();
     _swapChain.reset();
+    _renderPass.reset();
 }
 
 void lumen::Renderer::_recreate_swap_chain()
@@ -184,11 +194,15 @@ void lumen::Renderer::_recreate_swap_chain()
         glfwWaitEvents();
     }
 
-    vkDeviceWaitIdle(_device->logicalDevice());
+    auto &device = _context.get_device();
+    vkDeviceWaitIdle(device.logicalDevice());
+    
     _cleanup_swap_chain();
 
-    _swapChain = std::make_unique<SwapChain>(*_instance, *_device, *_surface, _window.get_native_handle());
-    _renderPass = std::make_unique<RenderPass>(*_device, *_swapChain);
-    _pipeline = std::make_unique<Pipeline>(*_device, *_renderPass, "assets/shaders/triangle.vert.spv", "assets/shaders/triangle.frag.spv");
+    auto &instance = _context.get_instance();
+    auto &surface = _context.get_surface();
+
+    _swapChain = std::make_unique<SwapChain>(instance, device, surface, _window.get_native_handle());
+    _renderPass = std::make_unique<RenderPass>(device, *_swapChain);
     _create_framebuffers();
 }
