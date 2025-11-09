@@ -1,23 +1,15 @@
 #pragma once
 
+#include "vulkan_backend/core/VulkanObject.hpp"
 #include <string>
-#include <vulkan/vulkan.h>
 
 namespace lumen {
 
-class Device;
-
-class Shader
+class Shader : public VulkanObject<VkShaderModule>
 {
     public:
         Shader(Device &device, const std::string &filepath);
-        ~Shader() noexcept;
-
-        VkShaderModule handle() const noexcept;
-
-    private:
-        VkShaderModule _shaderModule;
-        Device &_device;
+        ~Shader() noexcept override;
 };
 
 }// namespace lumen
