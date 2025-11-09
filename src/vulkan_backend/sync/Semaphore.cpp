@@ -2,6 +2,10 @@
 #include "vulkan_backend/core/Device.hpp"
 #include "vulkan_backend/utils/Result.hpp"
 
+/**
+ * static private
+ */
+
 namespace {
 
 static inline VkSemaphore __create_semaphore_handle(lumen::Device &device)

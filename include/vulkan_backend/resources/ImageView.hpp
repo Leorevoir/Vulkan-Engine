@@ -1,22 +1,14 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
+#include "vulkan_backend/core/VulkanObject.hpp"
 
 namespace lumen {
 
-class Device;
-
-class ImageView
+class ImageView : public VulkanObject<VkImageView>
 {
     public:
         ImageView(Device &device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
-        ~ImageView() noexcept;
-
-        VkImageView handle() const noexcept;
-
-    private:
-        VkImageView _imageView;
-        Device &_device;
+        ~ImageView() noexcept override;
 };
 
 }// namespace lumen
