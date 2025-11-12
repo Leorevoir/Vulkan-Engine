@@ -44,6 +44,8 @@ class PipelineBuilder
         std::vector<VkDynamicState> _dynamicStateEnables;
         std::vector<VkPipelineShaderStageCreateInfo> _shaderStages;
         std::vector<std::unique_ptr<Shader>> _shaderModules;
+        std::vector<VkVertexInputBindingDescription> _bindingDescriptions;
+        std::vector<VkVertexInputAttributeDescription> _attributeDescriptions;
 };
 
 }// namespace lumen
