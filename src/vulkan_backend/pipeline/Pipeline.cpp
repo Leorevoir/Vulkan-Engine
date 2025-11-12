@@ -60,7 +60,7 @@ void lumen::Pipeline::_set_shader_stages(
 {
     PipelineBuilder builder{_device};
 
-    builder.set_shader_stages(vert_shader_path, frag_shader_path, is_source)
+    _handle = builder.set_shader_stages(vert_shader_path, frag_shader_path, is_source)
         .set_vertex_input_state()
         .set_input_assembly_state()
         .set_viewport_state()
