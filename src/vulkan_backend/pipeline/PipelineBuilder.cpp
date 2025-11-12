@@ -1,9 +1,9 @@
-#include "vulkan_backend/pipeline/PipelineBuilder.hpp"
-#include "vulkan_backend/core/Device.hpp"
-#include "vulkan_backend/pipeline/Shader.hpp"
-#include "vulkan_backend/resources/Mesh.hpp"
-#include "vulkan_backend/utils/Result.hpp"
+#include <utils/maths/Vertex.hpp>
 #include <vulkan/vulkan_core.h>
+#include <vulkan_backend/core/Device.hpp>
+#include <vulkan_backend/pipeline/PipelineBuilder.hpp>
+#include <vulkan_backend/pipeline/Shader.hpp>
+#include <vulkan_backend/utils/Result.hpp>
 
 /**
 * public
@@ -53,6 +53,8 @@ lumen::PipelineBuilder &lumen::PipelineBuilder::set_shader_stages(const std::str
 lumen::PipelineBuilder &lumen::PipelineBuilder::set_vertex_input_state() noexcept
 {
     _bindingDescriptions.resize(1);
+    _attributeDescriptions.resize(2);
+
     _bindingDescriptions[0].binding = 0;
     _bindingDescriptions[0].stride = sizeof(Vertex);
     _bindingDescriptions[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
