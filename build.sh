@@ -57,7 +57,7 @@ function _clean()
 function _fclean()
 {
     _clean
-    rm -rf vgcore*
+    rm -rf vgcore* example_*
 }
 
 for args in "$@"
