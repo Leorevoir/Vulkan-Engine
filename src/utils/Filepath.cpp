@@ -7,11 +7,6 @@
 * public
 */
 
-#include <utils/Filepath.hpp>
-
-#include <fstream>
-#include <stdexcept>
-
 #ifndef LUMEN_ROOT_DIR
     #define LUMEN_ROOT_DIR "."
     #warning "LUMEN_ROOT_DIR is not defined. Defaulting to current directory."
@@ -61,6 +56,13 @@ std::vector<char> Filepath::read(const std::string &base_path)
     file.close();
 
     return buffer;
+}
+
+std::string Filepath::read_str(const std::string &base_path)
+{
+    const auto bytes = Filepath::read(base_path);
+
+    return std::string(bytes.begin(), bytes.end());
 }
 
 uintmax_t Filepath::size(const std::string &base_path)
