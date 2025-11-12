@@ -32,25 +32,6 @@ void lumen::Application::run()
 }
 
 /**
- * protected
- */
-
-void lumen::Application::on_create()
-{
-    /* __override__ */
-}
-
-void lumen::Application::on_update()
-{
-    /* __override__ */
-}
-
-void lumen::Application::on_destroy()
-{
-    /* __override__ */
-}
-
-/**
  * getters
  */
 
