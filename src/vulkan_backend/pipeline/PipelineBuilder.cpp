@@ -20,13 +20,18 @@ lumen::PipelineBuilder::~PipelineBuilder() noexcept
     /* __dtor__ */
 }
 
-lumen::PipelineBuilder &lumen::PipelineBuilder::set_shader_stages(const std::string &vert_path, const std::string &frag_path)
+lumen::PipelineBuilder &lumen::PipelineBuilder::set_shader_stages(const std::string &vert_path, const std::string &frag_path, bool from_source)
 {
     _shaderModules.clear();
     _shaderStages.clear();
 
-    _shaderModules.push_back(std::make_unique<Shader>(_device, vert_path));
-    _shaderModules.push_back(std::make_unique<Shader>(_device, frag_path));
+    if (from_source) {
+        _shaderModules.push_back(std::make_unique<Shader>(_device, vert_path, VK_SHADER_STAGE_VERTEX_BIT));
+        _shaderModules.push_back(std::make_unique<Shader>(_device, frag_path, VK_SHADER_STAGE_FRAGMENT_BIT));
+    } else {
+        _shaderModules.push_back(std::make_unique<Shader>(_device, vert_path));
+        _shaderModules.push_back(std::make_unique<Shader>(_device, frag_path));
+    }
 
     _shaderStages.push_back({
         .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
