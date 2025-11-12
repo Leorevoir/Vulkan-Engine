@@ -42,10 +42,12 @@ set_target_properties(lumen_backend PROPERTIES
 target_include_directories(lumen_backend PUBLIC
     $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
+    ${SHADERC_INCLUDE_DIRS}
 )
 
 target_link_libraries(lumen_backend PUBLIC
     Vulkan::Vulkan
+    ${SHADERC_LIBRARIES}
     glfw
     Lumen::Utils
 )
