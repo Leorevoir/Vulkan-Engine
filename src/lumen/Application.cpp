@@ -1,8 +1,10 @@
 #include <lumen/Application.hpp>
 
 #include <vulkan_backend/core/GraphicsContext.hpp>
+#include <vulkan_backend/pipeline/Pipeline.hpp>
 #include <vulkan_backend/renderer/RenderWindow.hpp>
 #include <vulkan_backend/renderer/Renderer.hpp>
+#include <vulkan_backend/resources/VulkanMesh.hpp>
 #include <vulkan_backend/utils/Config.hpp>
 
 /**
@@ -18,21 +20,35 @@ lumen::Application::Application()
 
 lumen::Application::~Application()
 {
-    if (_context) {
-        vkDeviceWaitIdle(_context->get_device().logicalDevice());
-    }
+    /* __dtor__ */
 }
 
 void lumen::Application::run()
 {
     on_create();
     _main_loop();
+    _wait_for_delete();
     on_destroy();
 }
 
 /**
  * protected
  */
+
+void lumen::Application::on_create()
+{
+    /* __override__ */
+}
+
+void lumen::Application::on_update()
+{
+    /* __override__ */
+}
+
+void lumen::Application::on_destroy()
+{
+    /* __override__ */
+}
 
 /**
  * getters
@@ -62,5 +78,12 @@ void lumen::Application::_main_loop()
     while (!_window->should_close()) {
         _window->poll_events();
         on_update();
+    }
+}
+
+void lumen::Application::_wait_for_delete()
+{
+    if (_context) {
+        vkDeviceWaitIdle(_context->get_device().logicalDevice());
     }
 }

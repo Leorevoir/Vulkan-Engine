@@ -1,6 +1,8 @@
 #pragma once
 
-#include "vulkan_backend/core/VulkanObject.hpp"
+#include <vulkan_backend/Backend.hpp>
+#include <vulkan_backend/core/VulkanObject.hpp>
+
 #include <string>
 
 namespace lumen {

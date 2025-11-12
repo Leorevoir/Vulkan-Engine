@@ -1,8 +1,9 @@
-#include "vulkan_backend/pipeline/PipelineBuilder.hpp"
-#include "vulkan_backend/core/Device.hpp"
-#include "vulkan_backend/pipeline/Shader.hpp"
-#include "vulkan_backend/utils/Result.hpp"
+#include <utils/maths/Vertex.hpp>
 #include <vulkan/vulkan_core.h>
+#include <vulkan_backend/core/Device.hpp>
+#include <vulkan_backend/pipeline/PipelineBuilder.hpp>
+#include <vulkan_backend/pipeline/Shader.hpp>
+#include <vulkan_backend/utils/Result.hpp>
 
 /**
 * public
@@ -51,9 +52,29 @@ lumen::PipelineBuilder &lumen::PipelineBuilder::set_shader_stages(const std::str
 
 lumen::PipelineBuilder &lumen::PipelineBuilder::set_vertex_input_state() noexcept
 {
+    _bindingDescriptions.resize(1);
+    _attributeDescriptions.resize(2);
+
+    _bindingDescriptions[0].binding = 0;
+    _bindingDescriptions[0].stride = sizeof(Vertex);
+    _bindingDescriptions[0].inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+    _attributeDescriptions[0].binding = 0;
+    _attributeDescriptions[0].location = 0; ///<< position
+    _attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+    _attributeDescriptions[0].offset = offsetof(Vertex, position);
+
+    _attributeDescriptions[1].binding = 0;
+    _attributeDescriptions[1].location = 1; ///<< color
+    _attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+    _attributeDescriptions[1].offset = offsetof(Vertex, color);
+
     _vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-    _vertexInputInfo.vertexBindingDescriptionCount = 0;
-    _vertexInputInfo.vertexAttributeDescriptionCount = 0;
+    _vertexInputInfo.vertexBindingDescriptionCount = static_cast<uint32_t>(_bindingDescriptions.size());
+    _vertexInputInfo.pVertexBindingDescriptions = _bindingDescriptions.data();
+    _vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(_attributeDescriptions.size());
+    _vertexInputInfo.pVertexAttributeDescriptions = _attributeDescriptions.data();
+
     return *this;
 }
 
@@ -124,8 +145,7 @@ VkPipeline lumen::PipelineBuilder::build(VkRenderPass render_pass, VkPipelineLay
 {
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-    vk_check(vkCreatePipelineLayout(_device.logicalDevice(), &pipelineLayoutInfo, nullptr, out_pipeline_layout),
-        "failed to create pipeline layout!");
+    vk_check(vkCreatePipelineLayout(_device.logicalDevice(), &pipelineLayoutInfo, nullptr, out_pipeline_layout), "failed to create pipeline layout!");
 
     VkGraphicsPipelineCreateInfo pipelineInfo{};
     pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -143,8 +163,7 @@ VkPipeline lumen::PipelineBuilder::build(VkRenderPass render_pass, VkPipelineLay
     pipelineInfo.subpass = 0;
 
     VkPipeline graphicsPipeline;
-    vk_check(vkCreateGraphicsPipelines(_device.logicalDevice(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline),
-        "failed to create graphics pipeline!");
+    vk_check(vkCreateGraphicsPipelines(_device.logicalDevice(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline), "failed to create graphics pipeline!");
 
     return graphicsPipeline;
 }

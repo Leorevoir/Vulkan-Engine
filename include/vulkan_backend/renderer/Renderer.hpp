@@ -5,6 +5,7 @@
 #include <vulkan_backend/core/GraphicsContext.hpp>
 #include <vulkan_backend/pipeline/Pipeline.hpp>
 #include <vulkan_backend/pipeline/RenderPass.hpp>
+#include <vulkan_backend/renderer/RenderObject.hpp>
 #include <vulkan_backend/resources/Framebuffer.hpp>
 #include <vulkan_backend/surface/SwapChain.hpp>
 #include <vulkan_backend/sync/SyncManager.hpp>
@@ -28,7 +29,7 @@ class Renderer
         Renderer(Renderer &&) = delete;
         Renderer &operator=(Renderer &&) = delete;
 
-        void draw_frame(const Pipeline &pipeline);
+        void draw_frame(const std::vector<RenderObject> &renderables, const Pipeline &pipeline);
         const RenderPass &get_render_pass() const;
 
     private:
@@ -43,7 +44,7 @@ class Renderer
         void _recreate_swap_chain();
 
         std::optional<FrameData> _begin_frame();
-        void _record_draw_commands(const FrameData &frame, const Pipeline &pipeline);
+        void _record_draw_commands(const FrameData &frame, const std::vector<RenderObject> &renderables, const Pipeline &pipeline);
         void _end_frame(const FrameData &frame);
 
         GraphicsContext &_context;
