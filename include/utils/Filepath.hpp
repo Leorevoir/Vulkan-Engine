@@ -14,6 +14,7 @@ Path get_absolute(const std::string &path_from_root);
 bool exists(const std::string &base_path) noexcept;
 
 std::vector<char> read(const std::string &base_path);
+std::string read_str(const std::string &base_path);
 
 void write(const std::string &base_path, const std::string &data);
 

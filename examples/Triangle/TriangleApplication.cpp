@@ -13,21 +13,19 @@
 namespace {
 
 /**
-* {position}    {color}
+* {position}            {color}
 */
 static constexpr lumen::Vertex g_vertices[] = {
-    {{-0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},
-    {{ 0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
-    {{ 0.5f,  0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}},
-    {{-0.5f,  0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}}
+    {{ 0.0f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},
+    {{ 0.5f,  0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
+    {{-0.5f,  0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}}
 };
 
 /**
- * [first triangle]   [second triangle]
+ * triangle indices
  */
 static constexpr uint32_t g_indices[] = {
-    0, 1, 2,
-    2, 3, 0
+    0, 1, 2
 };
 
 }
@@ -39,16 +37,12 @@ static constexpr uint32_t g_indices[] = {
 
 void TriangleApplication::on_create()
 {
-    const std::string vert_shader_path = Filepath::get_absolute("examples/Triangle/assets/shaders/triangle.vert.spv").string();
-    const std::string frag_shader_path = Filepath::get_absolute("examples/Triangle/assets/shaders/triangle.frag.spv").string();
+    _pipeline = std::make_unique<lumen::Pipeline>(get_context().get_device(), get_renderer().get_render_pass());
 
-    _pipeline =
-        std::make_unique<lumen::Pipeline>(get_context().get_device(), get_renderer().get_render_pass(), vert_shader_path, frag_shader_path);
+    auto triangle_mesh = std::make_shared<lumen::VulkanMesh>(get_context(), g_vertices, g_indices);
+    const lumen::RenderObject triangle_object = {.mesh = triangle_mesh};
 
-    auto square_mesh = std::make_shared<lumen::VulkanMesh>(get_context(), g_vertices, g_indices);
-    const lumen::RenderObject square_object = {.mesh = square_mesh};
-
-    _render_objects.push_back(square_object);
+    _render_objects.push_back(triangle_object);
 }
 
 void TriangleApplication::on_update()

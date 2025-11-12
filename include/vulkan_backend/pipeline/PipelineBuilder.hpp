@@ -18,7 +18,7 @@ class PipelineBuilder
         explicit PipelineBuilder(Device &device) noexcept;
         ~PipelineBuilder() noexcept;
 
-        PipelineBuilder &set_shader_stages(const std::string &vert_path, const std::string &frag_path);
+        PipelineBuilder &set_shader_stages(const std::string &vert_path, const std::string &frag_path, bool from_source = false);
         PipelineBuilder &set_vertex_input_state() noexcept;
         PipelineBuilder &set_input_assembly_state() noexcept;
         PipelineBuilder &set_viewport_state() noexcept;
