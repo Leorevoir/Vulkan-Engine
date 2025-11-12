@@ -1,10 +1,9 @@
 #include <vulkan_backend/commands/CommandQueue.hpp>
 #include <vulkan_backend/renderer/RenderWindow.hpp>
 #include <vulkan_backend/renderer/Renderer.hpp>
+#include <vulkan_backend/resources/VulkanMesh.hpp>
 #include <vulkan_backend/utils/Config.hpp>
 #include <vulkan_backend/utils/Result.hpp>
-
-#include <stdexcept>
 
 /**
  * public
@@ -15,8 +14,10 @@ lumen::Renderer::Renderer(GraphicsContext &context, RenderWindow &window)
     : _context(context), _window(window)
 {
     _init_renderer();
+
+    
     _window.set_framebuffer_resize_callback(
-    [this](int __attribute__((unused)) _w, int __attribute__((unused)) _h)
+    [this](int /*width*/, int /*height*/)
     {
         this->_framebufferResized = true;
     });
@@ -24,19 +25,22 @@ lumen::Renderer::Renderer(GraphicsContext &context, RenderWindow &window)
 
 lumen::Renderer::~Renderer()
 {
+    
     vkDeviceWaitIdle(_context.get_device().logicalDevice());
     _cleanup_swap_chain();
 }
 
-void lumen::Renderer::draw_frame(const Pipeline &pipeline)
+void lumen::Renderer::draw_frame(const std::vector<RenderObject> &renderables, const Pipeline &pipeline)
 {
+
     const std::optional<FrameData> frame_data = _begin_frame();
 
     if (!frame_data.has_value()) {
         return;
     }
 
-    _record_draw_commands(frame_data.value(), pipeline);
+    _record_draw_commands(frame_data.value(), renderables, pipeline);
+
     _end_frame(frame_data.value());
 }
 
@@ -51,6 +55,7 @@ const lumen::RenderPass &lumen::Renderer::get_render_pass() const
 
 std::optional<lumen::Renderer::FrameData> lumen::Renderer::_begin_frame()
 {
+
     auto &inFlightFence = _syncManager->getInFlightFence(_currentFrame);
     inFlightFence.wait();
 
@@ -74,7 +79,7 @@ std::optional<lumen::Renderer::FrameData> lumen::Renderer::_begin_frame()
     return FrameData{cmdBuffer->handle(), imageIndex};
 }
 
-void lumen::Renderer::_record_draw_commands(const FrameData &frame, const Pipeline &pipeline)
+void lumen::Renderer::_record_draw_commands(const FrameData &frame, const std::vector<RenderObject> &renderables, const Pipeline &pipeline)
 {
     VkRenderPassBeginInfo renderPassInfo{};
     renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -82,11 +87,13 @@ void lumen::Renderer::_record_draw_commands(const FrameData &frame, const Pipeli
     renderPassInfo.framebuffer = _framebuffers[frame.image_index]->handle();
     renderPassInfo.renderArea.offset = {0, 0};
     renderPassInfo.renderArea.extent = _swapChain->getExtent();
+
     VkClearValue clearColor = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
     renderPassInfo.clearValueCount = 1;
     renderPassInfo.pClearValues = &clearColor;
 
     vkCmdBeginRenderPass(frame.command_buffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
     vkCmdBindPipeline(frame.command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.handle());
 
     VkViewport viewport{};
@@ -100,7 +107,13 @@ void lumen::Renderer::_record_draw_commands(const FrameData &frame, const Pipeli
     scissor.extent = _swapChain->getExtent();
     vkCmdSetScissor(frame.command_buffer, 0, 1, &scissor);
 
-    vkCmdDraw(frame.command_buffer, 3, 1, 0, 0);
+    for (const auto &object : renderables) {
+        if (object.mesh) {
+            object.mesh->bind(frame.command_buffer);
+            object.mesh->draw(frame.command_buffer);
+        }
+    }
+
     vkCmdEndRenderPass(frame.command_buffer);
 
     vk_check(vkEndCommandBuffer(frame.command_buffer), "failed to record command buffer!");
@@ -110,11 +123,13 @@ void lumen::Renderer::_end_frame(const FrameData &frame)
 {
     VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
     VkSemaphore waitSemaphores[] = {_syncManager->getImageAvailableSemaphore(_currentFrame).handle()};
     VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
     submitInfo.waitSemaphoreCount = 1;
     submitInfo.pWaitSemaphores = waitSemaphores;
     submitInfo.pWaitDstStageMask = waitStages;
+
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &frame.command_buffer;
 
@@ -123,20 +138,22 @@ void lumen::Renderer::_end_frame(const FrameData &frame)
     submitInfo.pSignalSemaphores = signalSemaphores;
 
     auto &inFlightFence = _syncManager->getInFlightFence(_currentFrame);
-    auto& device = _context.get_device();
+    auto &device = _context.get_device();
     vk_check(vkQueueSubmit(device.getGraphicsQueue().handle(), 1, &submitInfo, inFlightFence.handle()),
         "failed to submit draw command buffer!");
 
     VkPresentInfoKHR presentInfo{};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+
     presentInfo.waitSemaphoreCount = 1;
     presentInfo.pWaitSemaphores = signalSemaphores;
+
     VkSwapchainKHR swapChains[] = {_swapChain->handle()};
     presentInfo.swapchainCount = 1;
     presentInfo.pSwapchains = swapChains;
     presentInfo.pImageIndices = &frame.image_index;
 
-    VkResult result = vkQueuePresentKHR(device.getPresentQueue().handle(), &presentInfo);
+    const VkResult result = vkQueuePresentKHR(device.getPresentQueue().handle(), &presentInfo);
 
     if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || _framebufferResized) {
         _framebufferResized = false;
@@ -181,13 +198,14 @@ void lumen::Renderer::_create_framebuffers()
 void lumen::Renderer::_cleanup_swap_chain()
 {
     _framebuffers.clear();
-    _swapChain.reset();
     _renderPass.reset();
+    _swapChain.reset();
 }
 
 void lumen::Renderer::_recreate_swap_chain()
 {
     int width = 0, height = 0;
+
     glfwGetFramebufferSize(_window.get_native_handle(), &width, &height);
     while (width == 0 || height == 0) {
         glfwGetFramebufferSize(_window.get_native_handle(), &width, &height);
@@ -196,7 +214,7 @@ void lumen::Renderer::_recreate_swap_chain()
 
     auto &device = _context.get_device();
     vkDeviceWaitIdle(device.logicalDevice());
-    
+
     _cleanup_swap_chain();
 
     auto &instance = _context.get_instance();
