@@ -1,10 +1,10 @@
 #pragma once
 
-#include <vulkan_backend/resources/Mesh.hpp>
+#include <vulkan_backend/resources/VulkanMesh.hpp>
 
 template<size_t V, size_t I>
     requires(sizeof(lumen::Vertex) * V > 0 && sizeof(uint32_t) * I > 0)
-lumen::Mesh::Mesh(GraphicsContext &context, const Vertex (&vertices)[V], const uint32_t (&indices)[I])
+lumen::VulkanMesh::VulkanMesh(GraphicsContext &context, const Vertex (&vertices)[V], const uint32_t (&indices)[I])
     : _index_count(static_cast<uint32_t>(I))
 {
     const VkDeviceSize vertex_buffer_size = sizeof(Vertex) * V;

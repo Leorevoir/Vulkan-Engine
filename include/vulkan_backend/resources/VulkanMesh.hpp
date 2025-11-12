@@ -10,19 +10,19 @@ namespace lumen {
 
 class GraphicsContext;
 
-class Mesh
+class VulkanMesh
 {
     public:
-        Mesh(GraphicsContext &context, const std::vector<Vertex> &vertices, const std::vector<uint32_t> &indices);
+        VulkanMesh(GraphicsContext &context, const std::vector<Vertex> &vertices, const std::vector<uint32_t> &indices);
 
         template<size_t V, size_t I>
             requires(sizeof(lumen::Vertex) * V > 0 && sizeof(uint32_t) * I > 0)
-        Mesh(GraphicsContext &context, const Vertex (&vertices)[V], const uint32_t (&indices)[I]);
+        VulkanMesh(GraphicsContext &context, const Vertex (&vertices)[V], const uint32_t (&indices)[I]);
 
-        ~Mesh() = default;
+        ~VulkanMesh() = default;
 
-        Mesh(const Mesh &) = delete;
-        Mesh &operator=(const Mesh &) = delete;
+        VulkanMesh(const VulkanMesh &) = delete;
+        VulkanMesh &operator=(const VulkanMesh &) = delete;
 
         void bind(VkCommandBuffer command_buffer) const;
         void draw(VkCommandBuffer command_buffer) const;
@@ -35,4 +35,4 @@ class Mesh
 
 }// namespace lumen
 
-#include "inline/Mesh.inl"
+#include "inline/VulkanMesh.inl"
